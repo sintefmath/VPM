@@ -8,6 +8,7 @@ Vortex Particle Method for solving Navier Stokes in 2D and 3D
     * CMAKE_C_COMPILER                */usr/bin/mpicc
 
 if you use something else than Ubuntu, you might need to:
-    * you might need to tweak FindPETSC.cmake in order for cmake to find petsc
-    * as well as the openmpi path in the CMakeFile.txt of PoissonSolver2D
+
+* tweak FindPETSC.cmake in order for cmake to find petsc
+* tweak the openmpi path in the CMakeFile.txt of PoissonSolver2D, etc.
 
