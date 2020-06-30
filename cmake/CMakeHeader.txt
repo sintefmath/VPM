@@ -1,0 +1,173 @@
+site_name( COMPUTER )
+#Set dirs if not already set
+find_path(MODHOT_ROOT_DIR /cmake/CMakeHeader.txt PATHS ../../ ../ ../../../)
+get_filename_component(MODHOT_ROOT_DIR ${MODHOT_ROOT_DIR} ABSOLUTE)
+
+find_path(MODHOT_PROJ_DIR /cmake/CMakeHeader.txt PATHS ../../ ../ ../../../)
+get_filename_component(MODHOT_PROJ_DIR ${MODHOT_PROJ_DIR} ABSOLUTE)
+
+set( BUILD_SHARED_LIBS OFF )
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+    "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
+    FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
+GET_FILENAME_COMPONENT( MODHOT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE )
+#message("MODHOT_ROOT = " ${MODHOT_ROOT})
+
+set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/ )
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+if (EMSCRIPTEN)
+    # Use WebAssembly, GLFW 3 and WebGL 2.0
+    add_definitions(-DMODHOT_WEBGL -DGLFW_INCLUDE_ES3)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -s WASM=1 -s USE_GLFW=3 -s USE_WEBGL2=1 -s ALLOW_MEMORY_GROWTH=1")
+elseif (ANDROID)
+    # Use OpenGL ES 3.2 on Android
+    add_definitions(-DMODHOT_GLES -DGLFW_INCLUDE_ES32)
+else()
+    # Use OpenGL Core profile
+    add_definitions(-DMODHOT_GL)
+
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        # using Clang
+        message( FATAL_ERROR "Clang compiler is not supported yet." )
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+        # using Intel C++
+        message( FATAL_ERROR "Intel C++ compiler is not supported yet." )
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        # using GCC
+        option( CXX_PROFILING "" OFF )
+
+        execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+        if (GCC_VERSION VERSION_LESS 4.8 )
+            error(STATUS "GCC Version < 4.8 detected, please update your compiler.")
+        #else()
+        #    message(STATUS "GCC Version >= 4.8")
+        endif()
+
+        # Needed to use GLM swizzles on the lhs of assignments.
+        add_definitions( -DGLM_FORCE_INTRINSICS )
+
+
+        if ( CMAKE_BUILD_TYPE MATCHES "Debug" )
+            if( CXX_PROFILING )
+                # Profiling:
+                set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pg -Wall " )
+                #set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -pg -fno-inline-functions" )
+            else()
+                # Ordinary debug:
+                set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -ggdb3 -O0 -fno-inline-functions -Wall " )
+            endif()
+        else ()
+            if( CXX_PROFILING )
+                set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -O3 -Wall " )
+            endif ()
+        endif ()
+        option( ENABLE_PIC "" OFF )
+        if ( ENABLE_PIC )
+            set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC ")
+        endif ()
+
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+        # using Visual Studio C++
+        # You need these if you want to build a static lib or dll on Windows with msvc:
+        add_definitions( -DGLEW_STATIC )
+        add_definitions( -DFREEGLUT_STATIC )
+        add_definitions( -D_LIB )
+        add_definitions( -DFREEGLUT_LIB_PRAGMAS=0 )
+        #this is needed in order to get google test to compile on windows
+        set(gtest_force_shared_crt ON CACHE BOOL
+        "Use shared (DLL) run-time lib even when Google Test is built as static lib."
+        FORCE)
+    endif()
+endif()
+
+
+
+MACRO(add_modhot_lib source_dir)
+    if (NOT TARGET ${source_dir})
+        add_subdirectory(${MODHOT_ROOT_DIR}/libs/${source_dir} "${CMAKE_BINARY_DIR}/${source_dir}")
+        LIST( APPEND vfs_list "${vfs_list_parent}")
+        get_directory_property(hasParent PARENT_DIRECTORY)
+        if(hasParent)
+            set (vfs_list_parent "${vfs_list}" PARENT_SCOPE )
+        endif()
+    endif()
+ENDMACRO()
+
+MACRO(add_modhot_deprecated_lib source_dir)
+    if (NOT TARGET ${source_dir})
+        add_subdirectory(${MODHOT_ROOT_DIR}/deprecated_libs/${source_dir} "${CMAKE_BINARY_DIR}/${source_dir}")
+        LIST( APPEND vfs_list "${vfs_list_parent}")
+        get_directory_property(hasParent PARENT_DIRECTORY)
+        if(hasParent)
+            set (vfs_list_parent "${vfs_list}" PARENT_SCOPE )
+        endif()
+    endif()
+ENDMACRO()
+
+
+MACRO(add_modhot_project_lib source_dir)
+    if (NOT TARGET ${source_dir})
+        add_subdirectory(${MODHOT_PROJ_DIR}/project_libs/${source_dir} "${CMAKE_BINARY_DIR}/${source_dir}")
+        LIST( APPEND vfs_list "${vfs_list_parent}")
+        get_directory_property(hasParent PARENT_DIRECTORY)
+        if(hasParent)
+            set (vfs_list_parent "${vfs_list}" PARENT_SCOPE )
+        endif()
+    endif()
+ENDMACRO()
+
+MACRO(add_thirdparty_lib source_dir)#extra args specify target names
+    # quick fix, glm is header only
+    # imgui is not a cmake-project, only one source file to compile, so this is compiled in ApplicationWrapper_IMGUI
+    # Color-Utilities is not a cmake-project, only one source file to compile, so this is compiled in each unit test
+    # stb is header only and not a cmake project
+    if ( NOT ${source_dir} MATCHES "glm"
+         AND NOT ${source_dir} MATCHES "imgui"
+         AND NOT ${source_dir} MATCHES "Color-Utilities"
+         AND NOT ${source_dir} MATCHES "stb"
+         AND NOT (EMSCRIPTEN AND ${source_dir} MATCHES "glfw")
+       )
+        set(targetexists FALSE)
+        # ARGN is not a variable: assign its value to a variable
+        set(ExtraMacroArgs ${ARGN})
+        # Get the length of the list
+        list(LENGTH ExtraMacroArgs NumExtraMacroArgs)
+        # Execute the following block only if the length is > 0
+        if(NumExtraMacroArgs GREATER 0)
+            #message(STATUS ">>> First optional arg = "${ARGV2}"")
+            set(firstargused FALSE)
+            foreach(ExtraArg ${ExtraMacroArgs})
+                if(NOT ${firstargused})
+                    if(NOT ${ExtraArg} STREQUAL "TARGETS" )
+                        message( FATAL_ERROR "--------------------------------------------\n The only argument allowed in add_thirdparty_lib after source_dir is TARGETS,\n example usage: add_thirdparty_lib(googletest TARGETS gtest gmock)\n--------------------------------------------")
+                    endif()
+                    set(firstargused TRUE)
+                else()
+                    #message(STATUS ">>> Element of list of opt args = ${ExtraArg}")
+                    if (TARGET ${ExtraArg})
+                        #message("found" ${ExtraArg})
+                        set(targetexists TRUE)
+                    endif()
+                endif()
+            endforeach()
+        else()
+            if (TARGET ${source_dir})
+                set(targetexists TRUE)
+            endif()
+        endif()
+        #message("targetexists for "${source_dir} ${targetexists})
+        #if (NOT TARGET ${source_dir})
+        if (NOT ${targetexists})
+            add_subdirectory(${MODHOT_ROOT_DIR}/thirdparty/${source_dir} "${CMAKE_BINARY_DIR}/${source_dir}")
+        endif()
+    endif()
+ENDMACRO()

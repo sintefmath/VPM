@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+*~
+*#
+*.swp
+*.tmp
+*.swo
+*.log
+*.aux
+CMakeInit.txt
+Session.vim
