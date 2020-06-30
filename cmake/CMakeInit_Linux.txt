@@ -1,0 +1,14 @@
+###set in case MODHOT base and Projects are located at different locations
+#
+#set(MODHOT_ROOT_DIR  "C:/prog/modhot-dev/" CACHE PATH "" )
+#set(MODHOT_PROJ_DIR  "C:/prog/modhot-dev/" CACHE PATH "" )
+
+### this is just an example usage
+#
+set(CUDA_HOST_COMPILER  /usr/bin/gcc-6 CACHE FILEPATH "Host side compiler used by NVCC")
+set(NVINFER_ROOT /home/jenkins/tensorrt-3.0.0/ CACHE PATH "")
+set(NVCAFFEE_ROOT /home/jenkins/tensorrt-3.0.0/ CACHE PATH "")
+set(PETSC_DIR /opt/petsc/linux-c-opt CACHE PATH "")
+#set(PETSC_ARCH linux-c-opt)
+#needed in Version 3.8.1-1
+set(PETSC_EXECUTABLE_RUNS ON CACHE BOOL "" FORCE)

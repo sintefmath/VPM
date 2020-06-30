@@ -1,0 +1,14 @@
+###set in case MODHOT base and Projects are located at different locations
+#set(MODHOT_ROOT_DIR  "C:/prog/modhot-dev/" CACHE PATH "" )
+#set(MODHOT_PROJ_DIR  "C:/prog/modhot-dev/" CACHE PATH "" )
+
+### this is just an example usage
+#
+set(GLUT_INCLUDE_DIR  "C:/opt/freeglut-3.0.0/include" CACHE PATH "" )
+set(GLUT_glut_LIBRARY "C:/opt/freeglut-3.0.0/build/lib/Release/freeglut.lib" CACHE PATH "" )
+set(GLEW_INCLUDE_DIR  "C:/opt/glew-2.0.0/include" CACHE PATH "")
+set(GLEW_LIBRARY  "C:/opt/glew-2.0.0/lib/Release/x64/glew32s.lib" CACHE PATH "")
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "C:/opt/QT5/5.6/msvc2015_64/lib/cmake/Qt5OpenGL" CACHE PATH "")
+set(OVRSDKROOT "C:/opt/ovr_sdk_win_1.13.0/OculusSDK" CACHE PATH "")
+set(ZLIB_INCLUDE_DIR "C:/opt/zlib" CACHE PATH "")
+set(ZLIB_LIBRARY "C:/opt/zlib/build/Release/zlib.lib" CACHE PATH "")
