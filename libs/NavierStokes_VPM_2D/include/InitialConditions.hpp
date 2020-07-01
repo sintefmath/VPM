@@ -27,7 +27,8 @@ namespace VPM {
 
     bool readParticlesFromFile(
             const std::string & filename,
-            ParticleField & pf
+            ParticleField & pf,
+            bool random_velocity_dist = false
             );
 }
 
