@@ -191,7 +191,8 @@ namespace VPM {
 
     bool readParticlesFromFile(
             const std::string & filename,
-            ParticleField & pf
+            ParticleField & pf,
+            bool random_velocity_dist
             )
     {
 
@@ -269,6 +270,7 @@ namespace VPM {
         pf.omega.clear();
         pf.velocity.clear();
 
+        double ra=0.;
         for (unsigned int i=0; i<pf.params.m_N; i++)
         {
             double posx, posy;
@@ -280,8 +282,14 @@ namespace VPM {
             myfile_omega.read((char *) &tmp_omega, sizeof(double));
             myfile_velx.read((char *) &velx, sizeof(double));
             myfile_vely.read((char *) &vely, sizeof(double));
+
+            if (random_velocity_dist)
+            {
+                ra = (2*((double) rand()/RAND_MAX)-1.)/1.;
+            }
+
             pf.positions.push_back(Point2d(posx, posy));
-            pf.omega.push_back(tmp_omega);
+            pf.omega.push_back(tmp_omega+ra);
             pf.velocity.push_back(Point2d(velx, vely));
         }
 
@@ -295,7 +303,14 @@ namespace VPM {
         }
 
         myfile_cartesianGrid.read((char *) &pf.cartesianGrid, sizeof(bool));
-        myfile_velocity_correspondsTo_omega.read((char *) &pf.velocity_correspondsTo_omega, sizeof(bool));
+        if (random_velocity_dist)
+        {
+            pf.velocity_correspondsTo_omega = false;
+        }
+        else
+        {
+            myfile_velocity_correspondsTo_omega.read((char *) &pf.velocity_correspondsTo_omega, sizeof(bool));
+        }
         myfile_Linfty_gradVelocity.read((char *) &pf.Linfty_gradVelocity, sizeof(double));
         myfile_pf_time.read((char *) &pf.time, sizeof(double));
 

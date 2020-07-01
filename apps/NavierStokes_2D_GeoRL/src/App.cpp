@@ -20,6 +20,7 @@ int main(int argc, char** argv)
     VPM::Point2d origo;
     double semimajoraxis;
     double semiminoraxis;
+    bool random_velocity_dist = false;
 
     for(int i=1; i<argc; ) {
         int eat = 0;
@@ -27,6 +28,10 @@ int main(int argc, char** argv)
         if( arg == "--if" && (i+1) < argc ) {
             inputFile = argv[i+1];
             eat = 2;
+        }
+        if( arg == "--rv" ) {
+            random_velocity_dist = true;
+            eat = 1;
         }
         //if( arg == "--pif" && (i+1) < argc ) {
         //    paramsFile = argv[i+1];
@@ -85,7 +90,7 @@ int main(int argc, char** argv)
     bool save_init;
 
     VPM::ParticleField pf;
-    readParticlesFromFile(inputFile, pf);//params->m_N, positions, omega);
+    readParticlesFromFile(inputFile, pf, random_velocity_dist);//params->m_N, positions, omega);
 
     std::size_t found = inputFile.find_last_of("_");
     std::string num = inputFile.substr(found+2, inputFile.size());
