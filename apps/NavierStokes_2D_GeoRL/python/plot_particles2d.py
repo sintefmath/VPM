@@ -2,6 +2,8 @@ import numpy as np
 #import matplotlib as mpl
 #mpl.use('Agg')
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.colors import LinearSegmentedColormap
 
 import sys
 if sys.version_info < (3, 5):
@@ -11,6 +13,20 @@ import os.path
 from os import path
 
 import subprocess
+
+cdict1 = {'red':   ((0.0, 0.0, 0.0),
+                   (0.5, 0.0, 0.1),
+                   (1.0, 1.0, 1.0)),
+
+         'green': ((0.0, 0.0, 0.0),
+                   (1.0, 0.0, 0.0)),
+
+         'blue':  ((0.0, 0.0, 1.0),
+                   (0.5, 0.1, 0.0),
+                   (1.0, 0.0, 0.0))
+        }
+blue_red1 = LinearSegmentedColormap('BlueRed1', cdict1)
+
 
 def execute(command):
     return subprocess.run([command, '-l'], stdout=subprocess.PIPE, shell=True).stdout.decode('utf-8')
@@ -112,19 +128,29 @@ def readParticles(filename, timestep, velocityField=False, backgroundField=False
         omega = readFromFile(fn, reshape, prec)
         return domain, x, y, omega, nu, time, nx, ny
 
-if __name__== "__main__":
+if __name__== "__initialization__":
+    ###
+    # Reynolds number is defined as
+    # Re = u L / nu
+    # For a Reynolds number of 100 this means nu = 0.1*.15/100
+    Re=500
+    ux=0.1
+    radius=0.15
+    nu=ux*(2*radius)/Re
+    ###
     filename="test"
     command= "cd ../build/ && make "
     tmp=execute(command).strip()
-    command= "../build/init --of "+str(filename)+" --nu 0.0 --domain -1 -1 1 1 --Uinfty 0.005 0 --nx 100 --ny 100"
+    command= "../build/init --of "+str(filename)+" --nu "+str(nu)+" --domain -1 -1 3 1 --Uinfty "+str(ux)+" 0 --nx 200 --ny 100 --order 1"
+    # --population_threshold 0.001"
     print("executing the command", command)
     tmp=execute(command).strip()
 
     iterations=20000
-    final_time=100.
+    final_time=00.
     for i in range(0,iterations):
         #print("================================== back in python, iteration number ",i)
-        command= "../build/app --if test_t"+str(i)+" --of "+str(filename)+" --dt 0.1 --T "+str(final_time)+" --origo -.5 0 --semimajoraxis .25 --semiminoraxis .15"
+        command= "../build/app --if test_t"+str(i)+" --of "+str(filename)+" --T "+str(final_time)+" --origo -.5 0.025 --semimajoraxis "+str(radius)+" --semiminoraxis "+str(radius)
         print("executing the command", command)
         tmp=execute(command).strip()
         time = getTime(filename,i+1)
@@ -133,10 +159,54 @@ if __name__== "__main__":
             iterations=i
             break
 
-    domain, x, y, Ux, Uy, omega, nu, time, nx, ny = getFields(filename, iterations)
-    im = plt.imshow(omega, extent=domain, origin="lower")#, vmin=-40, vmax=40)#, cmap=blue_red1)
-    plt.colorbar()
-    plt.savefig("test_omega.png")
+        domain, x, y, Ux, Uy, omega, nu, time, nx, ny = getFields(filename, i)
+        plt.figure()
+        ax = plt.gca()
+        ma = np.max(omega)
+        mi = np.min(omega)
+        m = max(ma,-mi)
+        plt.title("time = "+"{:.4f}".format(time[0]))
+        im = ax.imshow(omega, extent=domain, origin="lower", cmap='seismic', vmin=-m, vmax=m, interpolation='bicubic')
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("bottom", size="5%", pad=0.25)
+        plt.colorbar(im, cax=cax, orientation="horizontal")
+        plt.savefig("test_omega"+str(i).zfill(5)+".png")
 
-    
+if __name__== "__main__":
+    ###
+    # Reynolds number is defined as
+    # Re = u L / nu
+    # For a Reynolds number of 100 this means nu = 0.1*.15/100
+    Re=500
+    ux=0.1
+    radius=0.15
+    nu=ux*(2*radius)/Re
+    filename="test"
 
+    iterations=20000
+    final_time=100.
+    for i in range(1203,iterations):
+        t = getTime(filename,i)[0];
+        radiusx = radius + 0.1*np.sin(t)
+        radiusy = radius - 0.1*np.sin(t)
+        command= "../build/app --if test_t"+str(i)+" --of "+str(filename)+" --T "+str(final_time)+" --origo -.5 0.025 --semimajoraxis "+str(radiusx)+" --semiminoraxis "+str(radiusy)
+        print("executing the command", command)
+        tmp=execute(command).strip()
+        time = getTime(filename,i+1)
+        print("time=", time)
+
+        domain, x, y, Ux, Uy, omega, nu, time, nx, ny = getFields(filename, i)
+        plt.figure()
+        ax = plt.gca()
+        ma = np.max(omega)
+        mi = np.min(omega)
+        m = max(ma,-mi)
+        plt.title("time = "+"{:.4f}".format(time[0]))
+        im = ax.imshow(omega, extent=domain, origin="lower", cmap='seismic', vmin=-m, vmax=m, interpolation='bicubic')
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("bottom", size="5%", pad=0.25)
+        plt.colorbar(im, cax=cax, orientation="horizontal")
+        plt.savefig("test_omega"+str(i).zfill(5)+".png")
+        if time>= final_time:
+            iterations=i
+            break

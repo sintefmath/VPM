@@ -16,7 +16,6 @@ int main(int argc, char** argv)
     //std::string paramsFile;
     std::string inputFile;
     std::string outputFile;
-    double dt;
     double final_time = 1;
     VPM::Point2d origo;
     double semimajoraxis;
@@ -35,10 +34,6 @@ int main(int argc, char** argv)
         //}
         if( arg == "--of" && (i+1) < argc ) {
             outputFile = argv[i+1];
-            eat = 2;
-        }
-        if( arg == "--dt" && (i+1) < argc ) {
-            dt = std::atof(argv[i+1]);
             eat = 2;
         }
         if( arg == "--T" && (i+1) < argc ) {
@@ -101,7 +96,7 @@ int main(int argc, char** argv)
     // run simulation //
     // ----------------- //
     vpm->run(pf, //positions, omega,
-            final_time, dt, //params,
+            final_time, //params,
             outputFile, fn_count, save_init, true
             );
 

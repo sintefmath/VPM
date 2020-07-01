@@ -66,7 +66,6 @@ namespace VPM
             //const std::vector<Point2d> & positions,
             //const std::vector<double> & omega,
             const double final_time,
-            const double dt,
             //const std::shared_ptr<Parameters> params,
             const std::string outputFile,
             const int filename_count,
