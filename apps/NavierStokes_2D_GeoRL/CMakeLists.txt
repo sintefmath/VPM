@@ -7,7 +7,7 @@ find_package(MPI REQUIRED)
 add_modhot_lib(NavierStokes_VPM_2D)
 add_executable(app "./src/App.cpp" )
 target_link_libraries( app
-    NavierStokes_VPM_2D
+    NavierStokes_VPM_2D MPI::MPI_C
     )
 
 add_executable(init "./src/Init.cpp" )
