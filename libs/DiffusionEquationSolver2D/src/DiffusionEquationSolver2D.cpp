@@ -5,6 +5,15 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#define MY_CHKERRQ(ierr) do { \
+    PetscErrorCode ierr__ = (ierr); \
+    if (PetscUnlikely(ierr__)) { \
+        auto error = PetscError(PETSC_COMM_SELF,__LINE__,PETSC_FUNCTION_NAME,__FILE__,ierr__,PETSC_ERROR_REPEAT," "); \
+        std::stringstream ss; \
+        ss << "Petsc error at " << __FILE__ << ":" << __LINE__ << std::endl; \
+        throw std::runtime_error(ss.str()); \
+    } \
+} while (0)
 
 namespace ModulesHotel
 {
@@ -75,11 +84,13 @@ namespace ModulesHotel
         char ** argv = &vc[0];
 
         PetscInitialize(&argc,&argv,(char*)0,help);
-        chkptsc(KSPCreate(PETSC_COMM_WORLD,&m_ksp));
-        chkptsc(VecCreate(PETSC_COMM_WORLD,&m_x));
+        MY_CHKERRQ(KSPCreate(PETSC_COMM_WORLD,&m_ksp));
+        MY_CHKERRQ(VecCreate(PETSC_COMM_WORLD,&m_x));
 
-        DMDACreate2d(PETSC_COMM_WORLD, DM_BOUNDARY_NONE, DM_BOUNDARY_NONE,DMDA_STENCIL_STAR,-11,-11,PETSC_DECIDE,PETSC_DECIDE,1,1,NULL,NULL,&m_da);
-        KSPSetDM(m_ksp,(DM)m_da);
+        DMDACreate2d(PETSC_COMM_WORLD, DM_BOUNDARY_NONE, DM_BOUNDARY_NONE,DMDA_STENCIL_STAR,nx,ny,PETSC_DECIDE,PETSC_DECIDE,1,1,NULL,NULL,&m_da);
+        MY_CHKERRQ(DMSetFromOptions(m_da));
+        MY_CHKERRQ(DMSetUp(m_da));
+        MY_CHKERRQ(KSPSetDM(m_ksp,(DM)m_da));
 
         //DMSetApplicationContext(m_da,&m_user);
         //KSPSetComputeRHS(m_ksp,ComputeRHS_DIFFEQ2D,&m_user);
@@ -99,8 +110,8 @@ namespace ModulesHotel
 
     DiffusionEquationSolver2D::~DiffusionEquationSolver2D()
     {
-        chkptsc(DMDestroy(&m_da));
-        chkptsc(KSPDestroy(&m_ksp));
+        MY_CHKERRQ(DMDestroy(&m_da));
+        MY_CHKERRQ(KSPDestroy(&m_ksp));
         PetscFinalize();
     };
 
@@ -135,16 +146,17 @@ namespace ModulesHotel
         m_user.dy = dy;
         m_user.lambda = nu*dt/(dx*dx);
 
+
         DMSetApplicationContext(m_da,&m_user);
+
         KSPSetComputeRHS(m_ksp,ComputeRHS_DIFFEQ2D,&m_user);
         KSPSetComputeOperators(m_ksp,ComputeMatrix_DIFFEQ2D,&m_user);
         KSPSetFromOptions(m_ksp);
+        MY_CHKERRQ(KSPSolve(m_ksp,NULL,NULL));
+        MY_CHKERRQ(KSPGetSolution(m_ksp,&m_x));
+        //MY_CHKERRQ(VecView(m_x,PETSC_VIEWER_STDOUT_WORLD));
 
-        chkptsc(KSPSolve(m_ksp,NULL,NULL));
-        chkptsc(KSPGetSolution(m_ksp,&m_x));
-        //chkptsc(VecView(m_x,PETSC_VIEWER_STDOUT_WORLD));
-
-        chkptsc(VecGetValues(m_x,m_N,&m_indices[0],&f[0]));
+        MY_CHKERRQ(VecGetValues(m_x,m_N,&m_indices[0],&f[0]));
 
     }
 
