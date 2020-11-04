@@ -231,19 +231,21 @@ int main(int argc, char** argv)
 
     std::vector<VPM::Point2d> positions;
     std::vector<double> omega;
-
+    VPM::ParticleField pf;
     int fn_count;
     bool save_init;
     if (inputFile.empty())
     {
-        init(params, example_num, example_dist, example_strength, example_core_radius, positions, omega);
+        init(*params, example_num, example_dist, example_strength, example_core_radius, positions, omega);
+	pf.positions = positions;
         fn_count = 0;
         save_init = true;
 
     }
     else
     {
-        readParticlesFromFile(inputFile, params->m_N, positions, omega);
+
+      readParticlesFromFile(inputFile, pf);
 
         std::size_t found = inputFile.find_last_of("_");
         std::string num = inputFile.substr(found+2, inputFile.size());
@@ -253,7 +255,7 @@ int main(int argc, char** argv)
 
 
 
-    vpm->run(positions, omega, time, dt, params,
+    vpm->run(pf, omega, time, dt, params,
             outputFile, fn_count, save_init
             );
 
