@@ -9,10 +9,13 @@
 //#include "Structure_InverseCircle.hpp"
 #include "Structure_Ellipse.hpp"
 #include <string>
+#define OMPI_SKIP_MPICXX 1
+#include <mpi.h>
 
 int main(int argc, char** argv)
 {
 
+    MPI_Init(&argc, &argv);
     //std::string paramsFile;
     std::string inputFile;
     std::string outputFile;
@@ -105,6 +108,8 @@ int main(int argc, char** argv)
             outputFile, fn_count, save_init, true
             );
 
+
+    MPI_Finalize();
     return 0;
 
 }
