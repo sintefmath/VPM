@@ -58,6 +58,7 @@ namespace VPM
         return ret;
     }
 
+    // implements equation (32) in https://www-ljk.imag.fr/membres/Chloe.Mimeau/paper_IJNMF.pdf
     Point2d VPM2d::getForces(
             const ParticleField & pf,
             const ParticleField & pf_old,
