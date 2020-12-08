@@ -43,13 +43,24 @@ namespace VPM
                 double & delta_t
                 );
 
+        Point2d getForces(
+                const ParticleField & pf,
+                const ParticleField & pf_old,
+                const double & delta_t
+                );
+
+
         int m_dim;
 
         std::shared_ptr<Split_Diffusion> m_diffusion;
         std::shared_ptr<Split_Advection> m_advection;
         std::shared_ptr<Split_Source> m_source;
 
+        bool m_structure_set;
+        std::shared_ptr<VPM::Structure> m_structure;
+
         ParticleField m_pf;
+        ParticleField m_pf_old;
 
         std::string m_outputFile;
         int m_filename_count;

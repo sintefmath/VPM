@@ -9,8 +9,12 @@ namespace VPM
        Structure_Circle();
         ~Structure_Circle();
         bool isInside(const Point2d pos, const double pad);
+        void getOrigo(Point2d & pos);
+        double getCharacteristicLength();
 
     private:
+        Point2d m_origo;
+        double m_radius;
 
     };
 

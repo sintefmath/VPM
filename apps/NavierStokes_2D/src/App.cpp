@@ -1,6 +1,7 @@
 #include "VPM2d.hpp"
 #include "Point2d.hpp"
 #include "InitialConditions.hpp"
+#include "Split_Advection.hpp"
 #include "Parameters.hpp"
 #include "Structure_Flat.hpp"
 #include "Structure_Hilly.hpp"
@@ -10,16 +11,20 @@
 #include "Structure_Ellipse.hpp"
 #include <string>
 
+#include <string>
+#define OMPI_SKIP_MPICXX 1
+#include <mpi.h>
+
 int m_numberofParticlesx = 50;
 int m_numberofParticlesy = 50;
 
 int main(int argc, char** argv)
 {
 
+    MPI_Init(&argc, &argv);
     std::string inputFile;
     std::string outputFile;
     double time = 0.1;
-    double dt = 0.01;
     double nu = 0.;
 
     double ax = 1.0;
@@ -35,11 +40,7 @@ int main(int argc, char** argv)
 
     int order = 1;
 
-    int example_num = -1;
     int structure_num = -1;
-    double example_dist = 0.5;
-    double example_strength = 1.;
-    double example_core_radius = 0.15;
 
     double population_threshold = -1;
 
@@ -80,10 +81,6 @@ int main(int argc, char** argv)
             time = std::atof(argv[i+1]);
             eat = 2;
         }
-        if( arg == "--dt" && (i+1) < argc ) {
-            dt = std::atof(argv[i+1]);
-            eat = 2;
-        }
         if( arg == "--domain" && (i+4) < argc ) {
             domain_ll = VPM::Point2d(std::atof(argv[i+1]),std::atof(argv[i+2]));
             domain_ur = VPM::Point2d(std::atof(argv[i+3]),std::atof(argv[i+4]));
@@ -105,24 +102,8 @@ int main(int argc, char** argv)
             order = std::atoi(argv[i+1]);
             eat = 2;
         }
-        if( arg == "--example_num" && (i+1) < argc ) {
-            example_num = std::atoi(argv[i+1]);
-            eat = 2;
-        }
         if( arg == "--structure_num" && (i+1) < argc ) {
             structure_num = std::atoi(argv[i+1]);
-            eat = 2;
-        }
-        if( arg == "--example_dist" && (i+1) < argc ) {
-            example_dist = std::atof(argv[i+1]);
-            eat = 2;
-        }
-        if( arg == "--example_strength" && (i+1) < argc ) {
-            example_strength = std::atof(argv[i+1]);
-            eat = 2;
-        }
-        if( arg == "--example_core_radius" && (i+1) < argc ) {
-            example_core_radius = std::atof(argv[i+1]);
             eat = 2;
         }
         if( arg == "--bc_xl" && (i+2) < argc ) {
@@ -154,6 +135,73 @@ int main(int argc, char** argv)
         else {
             i++;
         }
+    }
+
+    std::shared_ptr<VPM::RemeshParams> remeshParams = std::make_shared<VPM::RemeshParams>(
+            remesh_isOn,
+            remesh_steps,
+            remesh_method
+            );
+
+    std::shared_ptr<VPM::BCParams> bcParams = std::make_shared<VPM::BCParams>(
+            bc_xl,
+            bc_to_xl,
+            bc_xr,
+            bc_to_xr,
+            bc_yl,
+            bc_to_yl,
+            bc_yr,
+            bc_to_yr
+            );
+
+    VPM::Parameters params = VPM::Parameters(
+            domain_ll,
+            domain_ur,
+            m_numberofParticlesx,
+            m_numberofParticlesy,
+            nu,
+            population_threshold,
+            remeshParams,
+            bcParams,
+            order,
+            Uinfty
+            );
+
+    std::vector<VPM::Point2d> positions;
+    std::vector<double> omega;
+    VPM::ParticleField pf;
+    int fn_count = 0;
+    bool save_init = true;
+    if (inputFile.empty())
+    {
+        std::vector<VPM::Point2d> positions;
+        std::vector<double> omega;
+        init(params, -1, -1, -1, -1, positions, omega);
+
+        pf.omega = omega;
+        pf.positions = positions;
+        pf.regular_positions = positions;
+        pf.params = params;
+        pf.cartesianGrid = true;
+        pf.velocity_correspondsTo_omega = false;
+
+        VPM::Split_Advection advection;
+        advection.calculateVelocity(pf);
+
+        // it is important to set this, because a structure can/will be set
+        pf.velocity_correspondsTo_omega = false;
+
+    }
+    else
+    {
+        VPM::ParticleField pf;
+        bool random_velocity_dist=false;
+        readParticlesFromFile(inputFile, pf, random_velocity_dist);//params->m_N, positions, omega);
+
+        std::size_t found = inputFile.find_last_of("_");
+        std::string num = inputFile.substr(found+2, inputFile.size());
+        fn_count = std::atoi(num.c_str());
+        save_init = false;
     }
 
     VPM::VPM2d* vpm = new VPM::VPM2d(argc, argv);
@@ -198,67 +246,12 @@ int main(int argc, char** argv)
             break;
     }
 
-    std::shared_ptr<VPM::RemeshParams> remeshParams = std::make_shared<VPM::RemeshParams>(
-            remesh_isOn,
-            remesh_steps,
-            remesh_method
-            );
 
-    std::shared_ptr<VPM::BCParams> bcParams = std::make_shared<VPM::BCParams>(
-            bc_xl,
-            bc_to_xl,
-            bc_xr,
-            bc_to_xr,
-            bc_yl,
-            bc_to_yl,
-            bc_yr,
-            bc_to_yr
-            );
+        std::cerr<<" here1 "<<std::endl;
+    vpm->run(pf, time, outputFile, fn_count, save_init, false);
+        std::cerr<<" here2 "<<std::endl;
 
-    std::shared_ptr<VPM::Parameters> params = std::make_shared<VPM::Parameters>(
-            domain_ll,
-            domain_ur,
-            m_numberofParticlesx,
-            m_numberofParticlesy,
-            nu,
-            0,
-            population_threshold,
-            remeshParams,
-            bcParams,
-            order,
-            Uinfty
-            );
-
-    std::vector<VPM::Point2d> positions;
-    std::vector<double> omega;
-    VPM::ParticleField pf;
-    int fn_count;
-    bool save_init;
-    if (inputFile.empty())
-    {
-        init(*params, example_num, example_dist, example_strength, example_core_radius, positions, omega);
-	pf.positions = positions;
-        fn_count = 0;
-        save_init = true;
-
-    }
-    else
-    {
-
-      readParticlesFromFile(inputFile, pf);
-
-        std::size_t found = inputFile.find_last_of("_");
-        std::string num = inputFile.substr(found+2, inputFile.size());
-        fn_count = std::atoi(num.c_str());
-        save_init = false;
-    }
-
-
-
-    vpm->run(pf, omega, time, dt, params,
-            outputFile, fn_count, save_init
-            );
-
+    MPI_Finalize();
     return 0;
 
 }

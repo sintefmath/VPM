@@ -40,3 +40,6 @@
 *.aux
 CMakeInit.txt
 Session.vim
+*.dat
+*.png
+build/

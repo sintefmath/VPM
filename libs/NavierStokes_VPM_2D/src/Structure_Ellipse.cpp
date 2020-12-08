@@ -24,6 +24,16 @@ namespace VPM
     {
     }
 
+    void Structure_Ellipse::getOrigo(Point2d & pos)
+    {
+        pos = m_origo;
+    }
+
+    double Structure_Ellipse::getCharacteristicLength()
+    {
+        return 0.2;// not correct
+    }
+
     bool Structure_Ellipse::isInside(const Point2d pos, const double pad)
     {
 

@@ -22,4 +22,13 @@ namespace VPM
        return ret;
     }
 
+    void Structure_Hilly::getOrigo(Point2d & pos)
+    {
+    }
+
+    double Structure_Hilly::getCharacteristicLength()
+    {
+        return 0.;// not correct
+    }
+
 }
