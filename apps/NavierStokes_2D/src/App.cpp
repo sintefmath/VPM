@@ -247,9 +247,7 @@ int main(int argc, char** argv)
     }
 
 
-        std::cerr<<" here1 "<<std::endl;
     vpm->run(pf, time, outputFile, fn_count, save_init, false);
-        std::cerr<<" here2 "<<std::endl;
 
     MPI_Finalize();
     return 0;

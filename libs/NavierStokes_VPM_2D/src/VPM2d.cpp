@@ -16,7 +16,7 @@
 
 #include <petscksp.h>
 
-#define C_VPM 0.125
+#define C_VPM 0.75
 
 namespace VPM
 {
@@ -112,17 +112,26 @@ namespace VPM
                     int im_j  = i-1+int(pf.params.m_regular_num_px)*j;
                     int ip_j  = i+1+int(pf.params.m_regular_num_px)*j;
                     double x = (pf.regular_positions[i_j].x-origo.x);
+                    double y = (pf.regular_positions[i_j].y-origo.y);
                     double uy = (pf.velocity[i_jp].x - pf.velocity[i_jm].x)/(2*pf.params.m_dy);
                     double vx = (pf.velocity[ip_j].y - pf.velocity[im_j].y)/(2*pf.params.m_dx);
+                    double vy = (pf.velocity[i_jp].y - pf.velocity[i_jm].y)/(2*pf.params.m_dy);
                     double uxx = (pf.velocity[ip_j].x - 2*pf.velocity[i_j].x + pf.velocity[im_j].x)/pf.params.m_vol;
                     double uyy = (pf.velocity[i_jp].x - 2*pf.velocity[i_j].x + pf.velocity[i_jm].x)/pf.params.m_vol;
                     double vxy = (pf.velocity[ip_jp].y - pf.velocity[ip_jm].y - pf.velocity[im_jp].y + pf.velocity[im_jm].y)/pf.params.m_vol;
-                    F += sign*pf.params.m_dx*(
-                         pf.velocity[i_j].x*pf.velocity[i_j].y
-                       + pf.velocity[i_j].y*pf.omega[i_j]*x
-                       - x*(pf.velocity[i_j]-pf_old.velocity[i_j])/delta_t
-                       + Reynolds_inv*(2*uxx + uyy + vxy)*x
-                       - Reynolds_inv*(uy + vx));
+                    double ut = (pf.velocity[i_j].x-pf_old.velocity[i_j].x)/delta_t;
+                    F.x += sign*pf.params.m_dx*(
+                           pf.velocity[i_j].x*pf.velocity[i_j].y
+                         + pf.velocity[i_j].y*pf.omega[i_j]*y
+                         - y*ut
+                         + Reynolds_inv*(2*uxx + uyy + vxy)*y
+                         - Reynolds_inv*(uy + vx));
+                    F.y += sign*pf.params.m_dx*(
+                           0.5*(pf.velocity[i_j].y*pf.velocity[i_j].y - pf.velocity[i_j].x*pf.velocity[i_j].x)
+                         - pf.velocity[i_j].y*pf.omega[i_j]*x
+                         + x*ut
+                         - Reynolds_inv*(2*uxx + uyy + vxy)*x
+                         - 2*Reynolds_inv*vy);
                 }
             }
             for (int j=c-1; j<pf.params.m_regular_num_py-c+1; j++)
@@ -145,17 +154,27 @@ namespace VPM
                     int im_jm = i-1+int(pf.params.m_regular_num_px)*(j-1);
                     int im_j  = i-1+int(pf.params.m_regular_num_px)*j;
                     int ip_j  = i+1+int(pf.params.m_regular_num_px)*j;
+                    double x = (pf.regular_positions[i_j].x-origo.x);
                     double y = (pf.regular_positions[i_j].y-origo.y);
                     double ux = (pf.velocity[ip_j].x - pf.velocity[im_j].x)/(2*pf.params.m_dx);
+                    double uy = (pf.velocity[i_jp].x - pf.velocity[i_jm].x)/(2*pf.params.m_dy);
+                    double vx = (pf.velocity[ip_j].y - pf.velocity[im_j].y)/(2*pf.params.m_dx);
                     double vxx = (pf.velocity[ip_j].y - 2*pf.velocity[i_j].y + pf.velocity[im_j].y)/pf.params.m_vol;
                     double vyy = (pf.velocity[i_jp].y - 2*pf.velocity[i_j].y + pf.velocity[i_jm].y)/pf.params.m_vol;
                     double uxy = (pf.velocity[ip_jp].x - pf.velocity[ip_jm].x - pf.velocity[im_jp].x + pf.velocity[im_jm].x)/pf.params.m_vol;
-                    F += sign*pf.params.m_dx*(
-                         0.5*(pf.velocity[i_j].y*pf.velocity[i_j].y-pf.velocity[i_j].x*pf.velocity[i_j].x)
-                       - pf.velocity[i_j].x*pf.omega[i_j]*y
-                       - y*(pf.velocity[i_j]-pf_old.velocity[i_j])/delta_t
-                       + Reynolds_inv*(2*vyy + vxx + uxy)*y
-                       + 2*Reynolds_inv*ux);
+                    double vt = (pf.velocity[i_j].y-pf_old.velocity[i_j].y)/delta_t;
+                    F.x += sign*pf.params.m_dx*(
+                           0.5*(pf.velocity[i_j].y*pf.velocity[i_j].y-pf.velocity[i_j].x*pf.velocity[i_j].x)
+                         - pf.velocity[i_j].x*pf.omega[i_j]*y
+                         - y*vt
+                         + Reynolds_inv*(2*vyy + vxx + uxy)*y
+                         + 2*Reynolds_inv*ux);
+                    F.y += sign*pf.params.m_dx*(
+                         - pf.velocity[i_j].x*pf.velocity[i_j].y
+                         + pf.velocity[i_j].x*pf.omega[i_j]*x
+                         + x*vt
+                         - Reynolds_inv*(2*vyy + vxx + uxy)*x
+                         + Reynolds_inv*(vx + uy));
                 }
             }
 #else
