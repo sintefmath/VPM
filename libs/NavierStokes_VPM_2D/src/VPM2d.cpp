@@ -217,6 +217,14 @@ namespace VPM
         m_structure = structure;
         m_structure_set = true;
     }
+    void VPM2d::getCharacteristicLength (double & charlength, bool & structureset)
+    {
+        if (m_structure_set)
+        {
+            charlength = m_structure->getCharacteristicLength();
+        }
+        structureset = m_structure_set;
+    }
 
     void VPM2d::run(
             ParticleField & pf,
@@ -256,6 +264,44 @@ namespace VPM
             if ( stepcount==0&&m_save_init )
             {
                 writeParticlesToFile(m_outputFile, m_filename_count, m_pf);
+                double ForceToCoeff = 2./m_pf.params.m_Uinfty.x/m_pf.params.m_Uinfty.x/m_structure->getCharacteristicLength();
+                std::string t = std::to_string(m_filename_count);
+                std::ofstream myfile_ft;
+                std::ofstream myfile_fx;
+                std::ofstream myfile_fy;
+                std::ofstream myfile_dx;
+                std::ofstream myfile_dy;
+                myfile_ft.open(m_outputFile+"_t"+t+"_ft.dat", std::ofstream::binary);
+                myfile_fx.open(m_outputFile+"_t"+t+"_fx.dat", std::ofstream::binary);
+                myfile_fy.open(m_outputFile+"_t"+t+"_fy.dat", std::ofstream::binary);
+                myfile_dx.open(m_outputFile+"_t"+t+"_dx.dat", std::ofstream::binary);
+                myfile_dy.open(m_outputFile+"_t"+t+"_dy.dat", std::ofstream::binary);
+                double tmp;
+                for (unsigned int i=0; i<fx.size(); i++)
+                {
+#ifdef forcesversion2
+                    myfile_ft.write(reinterpret_cast<const char*>(&ft[i]), sizeof(double));
+                    tmp = fx[i];
+                    myfile_fx.write(reinterpret_cast<const char*>(&tmp), sizeof(double));
+                    tmp *= ForceToCoeff;
+                    myfile_dx.write(reinterpret_cast<const char*>(&tmp), sizeof(double));
+                    tmp = fy[i];
+                    myfile_fy.write(reinterpret_cast<const char*>(&tmp), sizeof(double));
+                    tmp *= ForceToCoeff;
+                    myfile_dy.write(reinterpret_cast<const char*>(&tmp), sizeof(double));
+#else
+                    myfile_ft.write(reinterpret_cast<const char*>(&ft[i]), sizeof(double));
+                    myfile_fx.write(reinterpret_cast<const char*>(&fx[i]), sizeof(double));
+                    myfile_fy.write(reinterpret_cast<const char*>(&fy[i]), sizeof(double));
+                    myfile_dx.write(reinterpret_cast<const char*>(&dx[i]), sizeof(double));
+                    myfile_dy.write(reinterpret_cast<const char*>(&dy[i]), sizeof(double));
+#endif
+                }
+                myfile_ft.close();
+                myfile_fx.close();
+                myfile_fy.close();
+                myfile_dx.close();
+                myfile_dy.close();
                 m_filename_count++;
             }
 
@@ -292,7 +338,7 @@ namespace VPM
 
             m_filename_count++;
             stepcount++;
-            if(stepcount%100==0)
+            if(stepcount%10==0)
             {
                 double ForceToCoeff = 2./m_pf.params.m_Uinfty.x/m_pf.params.m_Uinfty.x/m_structure->getCharacteristicLength();
                 writeParticlesToFile(m_outputFile, m_filename_count, m_pf);
@@ -311,7 +357,7 @@ namespace VPM
                 double tmp;
                 for (unsigned int i=0; i<fx.size(); i++)
                 {
-#ifndef forcesversion1
+#ifdef forcesversion2
                     myfile_ft.write(reinterpret_cast<const char*>(&ft[i]), sizeof(double));
                     tmp = fx[i];
                     myfile_fx.write(reinterpret_cast<const char*>(&tmp), sizeof(double));

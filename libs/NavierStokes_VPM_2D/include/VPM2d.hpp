@@ -34,6 +34,8 @@ namespace VPM
             const bool onestep = false
             );
         void setStructure(std::shared_ptr<VPM::Structure> structure);
+        void getCharacteristicLength(double & charlength, bool & structureset);
+
 
     private:
 

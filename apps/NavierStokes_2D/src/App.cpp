@@ -6,10 +6,10 @@
 #include "Structure_Flat.hpp"
 #include "Structure_Hilly.hpp"
 #include "Structure_Circle.hpp"
+#include "Structure_Wing.hpp"
 #include "Structure_HalfCircle.hpp"
 #include "Structure_InverseCircle.hpp"
 #include "Structure_Ellipse.hpp"
-#include <string>
 
 #include <string>
 #define OMPI_SKIP_MPICXX 1
@@ -26,6 +26,7 @@ int main(int argc, char** argv)
     std::string outputFile;
     double time = 0.1;
     double nu = 0.;
+    double Re = 0.;
 
     double ax = 1.0;
     double ay = 1.0;
@@ -75,6 +76,10 @@ int main(int argc, char** argv)
         }
         if( arg == "--nu" && (i+1) < argc ) {
             nu = std::atof(argv[i+1]);
+            eat = 2;
+        }
+        if( arg == "--Re" && (i+1) < argc ) {
+            Re = std::atof(argv[i+1]);
             eat = 2;
         }
         if( arg == "--T" && (i+1) < argc ) {
@@ -134,6 +139,67 @@ int main(int argc, char** argv)
         }
         else {
             i++;
+        }
+    }
+
+
+    VPM::VPM2d* vpm = new VPM::VPM2d(argc, argv);
+
+    switch (structure_num)
+    {
+        case (0):
+            {
+                std::shared_ptr<VPM::Structure_Flat> structure = std::make_shared<VPM::Structure_Flat>();
+                vpm->setStructure(structure);
+            }
+            break;
+        case (1):
+            {
+                std::shared_ptr<VPM::Structure_Hilly> structure = std::make_shared<VPM::Structure_Hilly>();
+                vpm->setStructure(structure);
+            }
+            break;
+        case (2):
+            {
+                std::shared_ptr<VPM::Structure_Circle> structure = std::make_shared<VPM::Structure_Circle>();
+                vpm->setStructure(structure);
+            }
+            break;
+        case (3):
+            {
+                std::shared_ptr<VPM::Structure_HalfCircle> structure = std::make_shared<VPM::Structure_HalfCircle>();
+                vpm->setStructure(structure);
+            }
+            break;
+        case (4):
+            {
+                std::shared_ptr<VPM::Structure_InverseCircle> structure = std::make_shared<VPM::Structure_InverseCircle>();
+                vpm->setStructure(structure);
+            }
+            break;
+        case (5):
+            {
+                std::shared_ptr<VPM::Structure_Ellipse> structure = std::make_shared<VPM::Structure_Ellipse>();
+                vpm->setStructure(structure);
+            }
+            break;
+        case (6):
+            {
+                std::shared_ptr<VPM::Structure_Wing> structure = std::make_shared<VPM::Structure_Wing>();
+                vpm->setStructure(structure);
+            }
+            break;
+    }
+
+    if (Re>0)
+    {
+        double charlength;
+        bool structureset;
+        vpm->getCharacteristicLength(charlength, structureset);
+        if (structureset)
+        {
+            nu = charlength*Uinfty.x/Re;
+            std::cerr<<"Setting nu="<<nu<<std::endl;
         }
     }
 
@@ -202,48 +268,6 @@ int main(int argc, char** argv)
         std::string num = inputFile.substr(found+2, inputFile.size());
         fn_count = std::atoi(num.c_str());
         save_init = false;
-    }
-
-    VPM::VPM2d* vpm = new VPM::VPM2d(argc, argv);
-
-    switch (structure_num)
-    {
-        case (0):
-            {
-                std::shared_ptr<VPM::Structure_Flat> structure = std::make_shared<VPM::Structure_Flat>();
-                vpm->setStructure(structure);
-            }
-            break;
-        case (1):
-            {
-                std::shared_ptr<VPM::Structure_Hilly> structure = std::make_shared<VPM::Structure_Hilly>();
-                vpm->setStructure(structure);
-            }
-            break;
-        case (2):
-            {
-                std::shared_ptr<VPM::Structure_Circle> structure = std::make_shared<VPM::Structure_Circle>();
-                vpm->setStructure(structure);
-            }
-            break;
-        case (3):
-            {
-                std::shared_ptr<VPM::Structure_HalfCircle> structure = std::make_shared<VPM::Structure_HalfCircle>();
-                vpm->setStructure(structure);
-            }
-            break;
-        case (4):
-            {
-                std::shared_ptr<VPM::Structure_InverseCircle> structure = std::make_shared<VPM::Structure_InverseCircle>();
-                vpm->setStructure(structure);
-            }
-            break;
-        case (5):
-            {
-                std::shared_ptr<VPM::Structure_Ellipse> structure = std::make_shared<VPM::Structure_Ellipse>();
-                vpm->setStructure(structure);
-            }
-            break;
     }
 
 
