@@ -9,6 +9,8 @@ namespace VPM
        Structure_InverseCircle();
         ~Structure_InverseCircle();
         bool isInside(const Point2d pos, const double pad);
+        void getOrigo(Point2d & pos);
+        double getCharacteristicLength();
 
     private:
 

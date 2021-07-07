@@ -53,6 +53,8 @@ namespace VPM
             const double dt
             )
     {
+        std::cerr<<"  ---> Split_Diffusion:: RK2_step not yet implemented\n";
+        exit(0);
         return;
     }
 

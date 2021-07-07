@@ -25,4 +25,13 @@ namespace VPM
        return ret;
     }
 
+    void Structure_HalfCircle::getOrigo(Point2d & pos)
+    {
+    }
+
+    double Structure_HalfCircle::getCharacteristicLength()
+    {
+        return 0.;// not correct
+    }
+
 }

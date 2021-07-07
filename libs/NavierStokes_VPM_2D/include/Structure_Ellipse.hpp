@@ -11,6 +11,8 @@ namespace VPM
         Structure_Ellipse(Point2d origo, double semi_major_axis, double semi_minor_axis);
         ~Structure_Ellipse();
         bool isInside(const Point2d pos, const double pad);
+        void getOrigo(Point2d & pos);
+        double getCharacteristicLength();
 
     private:
 

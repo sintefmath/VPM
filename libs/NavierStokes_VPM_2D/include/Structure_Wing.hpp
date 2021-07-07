@@ -3,18 +3,19 @@
 
 namespace VPM
 {
-    class Structure_Circle : public Structure
+    class Structure_Wing : public Structure
     {
     public:
-       Structure_Circle();
-        ~Structure_Circle();
+       Structure_Wing();
+        ~Structure_Wing();
         bool isInside(const Point2d pos, const double pad);
         void getOrigo(Point2d & pos);
         double getCharacteristicLength();
 
     private:
         Point2d m_origo;
-        double m_radius;
+        double m_charlength;
+        std::vector<Point2d> m_p;
 
     };
 

@@ -19,6 +19,16 @@ namespace VPM
             ret = true;
         }
         return ret;
+
+    }
+
+    void Structure_Flat::getOrigo(Point2d & pos)
+    {
+    }
+
+    double Structure_Flat::getCharacteristicLength()
+    {
+        return 0.;// not correct
     }
 
 }

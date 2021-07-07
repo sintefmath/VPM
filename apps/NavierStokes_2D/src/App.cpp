@@ -1,14 +1,19 @@
 #include "VPM2d.hpp"
 #include "Point2d.hpp"
 #include "InitialConditions.hpp"
+#include "Split_Advection.hpp"
 #include "Parameters.hpp"
 #include "Structure_Flat.hpp"
 #include "Structure_Hilly.hpp"
 #include "Structure_Circle.hpp"
+#include "Structure_Wing.hpp"
 #include "Structure_HalfCircle.hpp"
 #include "Structure_InverseCircle.hpp"
 #include "Structure_Ellipse.hpp"
+
 #include <string>
+#define OMPI_SKIP_MPICXX 1
+#include <mpi.h>
 
 int m_numberofParticlesx = 50;
 int m_numberofParticlesy = 50;
@@ -16,11 +21,12 @@ int m_numberofParticlesy = 50;
 int main(int argc, char** argv)
 {
 
+    MPI_Init(&argc, &argv);
     std::string inputFile;
     std::string outputFile;
     double time = 0.1;
-    double dt = 0.01;
     double nu = 0.;
+    double Re = 0.;
 
     double ax = 1.0;
     double ay = 1.0;
@@ -35,11 +41,7 @@ int main(int argc, char** argv)
 
     int order = 1;
 
-    int example_num = -1;
     int structure_num = -1;
-    double example_dist = 0.5;
-    double example_strength = 1.;
-    double example_core_radius = 0.15;
 
     double population_threshold = -1;
 
@@ -76,12 +78,12 @@ int main(int argc, char** argv)
             nu = std::atof(argv[i+1]);
             eat = 2;
         }
-        if( arg == "--T" && (i+1) < argc ) {
-            time = std::atof(argv[i+1]);
+        if( arg == "--Re" && (i+1) < argc ) {
+            Re = std::atof(argv[i+1]);
             eat = 2;
         }
-        if( arg == "--dt" && (i+1) < argc ) {
-            dt = std::atof(argv[i+1]);
+        if( arg == "--T" && (i+1) < argc ) {
+            time = std::atof(argv[i+1]);
             eat = 2;
         }
         if( arg == "--domain" && (i+4) < argc ) {
@@ -105,24 +107,8 @@ int main(int argc, char** argv)
             order = std::atoi(argv[i+1]);
             eat = 2;
         }
-        if( arg == "--example_num" && (i+1) < argc ) {
-            example_num = std::atoi(argv[i+1]);
-            eat = 2;
-        }
         if( arg == "--structure_num" && (i+1) < argc ) {
             structure_num = std::atoi(argv[i+1]);
-            eat = 2;
-        }
-        if( arg == "--example_dist" && (i+1) < argc ) {
-            example_dist = std::atof(argv[i+1]);
-            eat = 2;
-        }
-        if( arg == "--example_strength" && (i+1) < argc ) {
-            example_strength = std::atof(argv[i+1]);
-            eat = 2;
-        }
-        if( arg == "--example_core_radius" && (i+1) < argc ) {
-            example_core_radius = std::atof(argv[i+1]);
             eat = 2;
         }
         if( arg == "--bc_xl" && (i+2) < argc ) {
@@ -155,6 +141,7 @@ int main(int argc, char** argv)
             i++;
         }
     }
+
 
     VPM::VPM2d* vpm = new VPM::VPM2d(argc, argv);
 
@@ -196,6 +183,24 @@ int main(int argc, char** argv)
                 vpm->setStructure(structure);
             }
             break;
+        case (6):
+            {
+                std::shared_ptr<VPM::Structure_Wing> structure = std::make_shared<VPM::Structure_Wing>();
+                vpm->setStructure(structure);
+            }
+            break;
+    }
+
+    if (Re>0)
+    {
+        double charlength;
+        bool structureset;
+        vpm->getCharacteristicLength(charlength, structureset);
+        if (structureset)
+        {
+            nu = charlength*Uinfty.x/Re;
+            std::cerr<<"Setting nu="<<nu<<std::endl;
+        }
     }
 
     std::shared_ptr<VPM::RemeshParams> remeshParams = std::make_shared<VPM::RemeshParams>(
@@ -215,13 +220,12 @@ int main(int argc, char** argv)
             bc_to_yr
             );
 
-    std::shared_ptr<VPM::Parameters> params = std::make_shared<VPM::Parameters>(
+    VPM::Parameters params = VPM::Parameters(
             domain_ll,
             domain_ur,
             m_numberofParticlesx,
             m_numberofParticlesy,
             nu,
-            0,
             population_threshold,
             remeshParams,
             bcParams,
@@ -232,20 +236,33 @@ int main(int argc, char** argv)
     std::vector<VPM::Point2d> positions;
     std::vector<double> omega;
     VPM::ParticleField pf;
-    int fn_count;
-    bool save_init;
+    int fn_count = 0;
+    bool save_init = true;
     if (inputFile.empty())
     {
-        init(*params, example_num, example_dist, example_strength, example_core_radius, positions, omega);
-	pf.positions = positions;
-        fn_count = 0;
-        save_init = true;
+        std::vector<VPM::Point2d> positions;
+        std::vector<double> omega;
+        init(params, -1, -1, -1, -1, positions, omega);
+
+        pf.omega = omega;
+        pf.positions = positions;
+        pf.regular_positions = positions;
+        pf.params = params;
+        pf.cartesianGrid = true;
+        pf.velocity_correspondsTo_omega = false;
+
+        VPM::Split_Advection advection;
+        advection.calculateVelocity(pf);
+
+        // it is important to set this, because a structure can/will be set
+        pf.velocity_correspondsTo_omega = false;
 
     }
     else
     {
-
-      readParticlesFromFile(inputFile, pf);
+        VPM::ParticleField pf;
+        bool random_velocity_dist=false;
+        readParticlesFromFile(inputFile, pf, random_velocity_dist);//params->m_N, positions, omega);
 
         std::size_t found = inputFile.find_last_of("_");
         std::string num = inputFile.substr(found+2, inputFile.size());
@@ -254,11 +271,9 @@ int main(int argc, char** argv)
     }
 
 
+    vpm->run(pf, time, outputFile, fn_count, save_init, false);
 
-    vpm->run(pf, omega, time, dt, params,
-            outputFile, fn_count, save_init
-            );
-
+    MPI_Finalize();
     return 0;
 
 }

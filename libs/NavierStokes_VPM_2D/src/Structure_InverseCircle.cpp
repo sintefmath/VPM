@@ -36,4 +36,13 @@ namespace VPM
        return ret;
     }
 
+    void Structure_InverseCircle::getOrigo(Point2d & pos)
+    {
+    }
+
+    double Structure_InverseCircle::getCharacteristicLength()
+    {
+        return 0.;// not correct
+    }
+
 }
