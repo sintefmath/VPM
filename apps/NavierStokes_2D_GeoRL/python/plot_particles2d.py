@@ -11,6 +11,7 @@ if sys.version_info < (3, 5):
 import os
 import os.path
 from os import path
+import tqdm
 
 import subprocess
 
@@ -91,6 +92,7 @@ def getFields(filename, timestep=0):
 def getTime(filename, timestep):
     prec=np.float64
     fn=filename+"_t"+str(timestep)+"_time"+".dat"
+    
     time = readFromFile(fn, None, prec)
     return time
 
@@ -194,7 +196,7 @@ if __name__== "__main__":
     itstart=1203
     iterations=itstart+20000
     final_time=100.
-    for i in range(itstart,iterations):
+    for i in tqdm.tqdm(range(itstart,iterations)):
         t = getTime(filename,i)[0];
         radiusx = radius + 0.1*np.sin(t)
         radiusy = radius - 0.1*np.sin(t)
@@ -202,25 +204,25 @@ if __name__== "__main__":
         if i==itstart:
             extrastr=" --rv"
         command= f"{app_name} --if "+filename+"_t"+str(i)+" --of "+filename+" --T "+str(final_time)+" --origo -.5 0.025 --semimajoraxis "+str(radiusx)+" --semiminoraxis "+str(radiusy)+extrastr
-        print("executing the command", command)
+        # print("executing the command", command)
         tmp=execute(command).strip()
         time = getTime(filename,i+1)
-        print("time=", time)
+        # print("time=", time)
 
         domain, x, y, Ux, Uy, omega, nu, time, nx, ny = getFields(filename, i)
 
-        plt.figure(1)
-        plt.clf()
-        ax1 = plt.gca()
-        ma = np.max(omega)
-        mi = np.min(omega)
-        m = max(ma,-mi)
-        plt.title("time = "+"{:.4f}".format(time[0]))
-        im = ax1.imshow(omega, extent=domain, origin="lower", cmap='seismic', vmin=-m, vmax=m, interpolation='bicubic')
-        divider = make_axes_locatable(ax1)
-        cax = divider.append_axes("bottom", size="5%", pad=0.25)
-        plt.colorbar(im, cax=cax, orientation="horizontal")
-        plt.savefig(filename+"_omega"+str(i).zfill(5)+".png")
+        # plt.figure(1)
+        # plt.clf()
+        # ax1 = plt.gca()
+        # ma = np.max(omega)
+        # mi = np.min(omega)
+        # m = max(ma,-mi)
+        # plt.title("time = "+"{:.4f}".format(time[0]))
+        # im = ax1.imshow(omega, extent=domain, origin="lower", cmap='seismic', vmin=-m, vmax=m, interpolation='bicubic')
+        # divider = make_axes_locatable(ax1)
+        # cax = divider.append_axes("bottom", size="5%", pad=0.25)
+        # plt.colorbar(im, cax=cax, orientation="horizontal")
+        # plt.savefig(filename+"_omega"+str(i).zfill(5)+".png")
 
         #plt.figure(2)
         #plt.clf()

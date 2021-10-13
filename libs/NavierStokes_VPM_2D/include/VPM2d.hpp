@@ -46,8 +46,6 @@ private:
   std::shared_ptr<Split_Advection> m_advection;
   std::shared_ptr<Split_Source> m_source;
 
-  ParticleField m_pf;
-
   std::string m_outputFile;
   int m_filename_count = 0;
   bool m_save_init = false;

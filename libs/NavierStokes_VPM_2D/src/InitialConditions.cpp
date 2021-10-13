@@ -126,7 +126,7 @@ namespace VPM {
         {
             std::cerr<<"---> Warning: Velocity field does not correspond to vorticity"<<std::endl;
         }
-
+        
         std::string t = std::to_string(timestep);
 
         pf.params.writeToFile(filename+"_t"+t+"_conf.dat");

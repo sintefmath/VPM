@@ -542,6 +542,7 @@ namespace VPM
         void writeToFile(std::string filename) const
         {
 
+
             std::ofstream myfile_conf(filename, std::ofstream::binary);
 
             myfile_conf.write((char *) &m_domain_ll.x, sizeof(double));

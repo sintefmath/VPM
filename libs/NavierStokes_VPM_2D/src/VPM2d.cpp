@@ -63,7 +63,7 @@ void VPM2d::run(ParticleField &pf,
     if (step_count == 0 && save_init) {
       writeParticlesToFile(m_outputFile, m_filename_count, pf_to_write);
       m_filename_count++;
-    } else {
+    } else if(step_count != 0){
       m_filename_count++;
       writeParticlesToFile(m_outputFile, m_filename_count, pf_to_write);
     }
@@ -113,11 +113,6 @@ void VPM2d::run_with_writer(
       writer(stepcount, pf);
     }
 
-    // if (stepcount==0)
-    //{
-    //    m_pf.Linfty_gradVelocity = C_VPM / delta_t;
-    //}
-
     brexit = new_stepsize(final_time, pf, delta_t);
 
     // 2) Diffusion
@@ -125,7 +120,7 @@ void VPM2d::run_with_writer(
     // 3) Advection
     if (pf.params.m_order_ODEsolver == 1) {
       m_advection->Euler_step(pf, delta_t);
-    } else // if (m_pf.params.m_order_ODEsolver==2)
+    } else 
     {
       m_advection->RK2_step(pf, delta_t);
     }
