@@ -1,0 +1,7 @@
+add_subdirectory(GeneralUtils)
+add_subdirectory(PoissonSolver2D)
+add_subdirectory(PoissonSolver3D)
+add_subdirectory(DiffusionEquationSolver2D)
+add_subdirectory(DiffusionEquationSolver3D)
+add_subdirectory(NavierStokes_VPM_3D)
+add_subdirectory(NavierStokes_VPM_2D)
