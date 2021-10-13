@@ -1,5 +1,5 @@
 file( GLOB sources "src/*.cpp" )
-add_library(NavierStokes_VPM_2D ${sources} )
+add_library(NavierStokes_VPM_2D SHARED ${sources} )
 target_include_directories(NavierStokes_VPM_2D PUBLIC
     "./include/"
     )
