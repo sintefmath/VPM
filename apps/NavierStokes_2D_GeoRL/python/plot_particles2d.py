@@ -129,6 +129,10 @@ def readParticles(filename, timestep, velocityField=False, backgroundField=False
         return domain, x, y, omega, nu, time, nx, ny
 
 if __name__== "__init__":
+    build_dir = "../../../build"
+    app_name = os.path.join(build_dir, "apps/NavierStokes_2D_GeoRL/navier_stokes_2d_georl")
+    init_name = os.path.join(build_dir, "apps/NavierStokes_2D_GeoRL/init")
+
     ###
     # Reynolds number is defined as
     # Re = u L / nu
@@ -139,9 +143,9 @@ if __name__== "__init__":
     nu=ux*(2*radius)/Re
     ###
     filename="Re500_100x50"
-    command= "cd ../build/ && make "
+    command= f"cd {build_dir} && make "
     tmp=execute(command).strip()
-    command= "../build/init --of "+filename+" --nu "+str(nu)+" --domain -1 -1 3 1 --Uinfty "+str(ux)+" 0 --nx 100 --ny 50 --order 1"
+    command= f"{init_name} --of "+filename+" --nu "+str(nu)+" --domain -1 -1 3 1 --Uinfty "+str(ux)+" 0 --nx 100 --ny 50 --order 1"
     # --population_threshold 0.001"
     print("executing the command", command)
     tmp=execute(command).strip()
@@ -150,7 +154,7 @@ if __name__== "__init__":
     final_time=50.
     for i in range(0,iterations):
         #print("================================== back in python, iteration number ",i)
-        command= "../build/app --if "+filename+"_t"+str(i)+" --of "+filename+" --T "+str(final_time)+" --origo -.5 0.025 --semimajoraxis "+str(radius)+" --semiminoraxis "+str(radius)
+        command= f"{app_name} --if "+filename+"_t"+str(i)+" --of "+filename+" --T "+str(final_time)+" --origo -.5 0.025 --semimajoraxis "+str(radius)+" --semiminoraxis "+str(radius)
         print("executing the command", command)
         tmp=execute(command).strip()
         time = getTime(filename,i+1)
@@ -173,6 +177,10 @@ if __name__== "__init__":
         plt.savefig(filename+"_omega"+str(i).zfill(5)+".png")
 
 if __name__== "__main__":
+    build_dir = "../../../build"
+    app_name = os.path.join(build_dir, "apps/NavierStokes_2D_GeoRL/navier_stokes_2d_georl")
+    init_name = os.path.join(build_dir, "apps/NavierStokes_2D_GeoRL/init")
+
     ###
     # Reynolds number is defined as
     # Re = u L / nu
@@ -193,7 +201,7 @@ if __name__== "__main__":
         extrastr=""
         if i==itstart:
             extrastr=" --rv"
-        command= "../build/app --if "+filename+"_t"+str(i)+" --of "+filename+" --T "+str(final_time)+" --origo -.5 0.025 --semimajoraxis "+str(radiusx)+" --semiminoraxis "+str(radiusy)+extrastr
+        command= f"{app_name} --if "+filename+"_t"+str(i)+" --of "+filename+" --T "+str(final_time)+" --origo -.5 0.025 --semimajoraxis "+str(radiusx)+" --semiminoraxis "+str(radiusy)+extrastr
         print("executing the command", command)
         tmp=execute(command).strip()
         time = getTime(filename,i+1)
