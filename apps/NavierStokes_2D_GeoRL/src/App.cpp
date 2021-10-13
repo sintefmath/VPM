@@ -108,7 +108,6 @@ int main(int argc, char** argv)
             outputFile, fn_count, save_init, true
             );
 
-
     MPI_Finalize();
     return 0;
 

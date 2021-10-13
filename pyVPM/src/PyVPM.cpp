@@ -8,6 +8,9 @@
 #include "Parameters.hpp"
 #include "Particles2d.hpp"
 #include "Point2d.hpp"
+#include "Split_Advection.hpp"
+#include "Structure_Ellipse.hpp"
+#include "VPM2d.hpp"
 
 std::string to_string(const VPM::Point2d &x)
 {
@@ -50,17 +53,17 @@ PYBIND11_MODULE(pyVPM, m)
              pybind11::arg("method") = "M4d_fast");
 
     pybind11::class_<VPM::BCParams, std::shared_ptr<VPM::BCParams>>(m, "BCParams")
-        .def(pybind11::init([](const std::string xlstring,
+        .def(pybind11::init([](const std::string &xlstring,
                                const double to_xl,
-                               const std::string xrstring,
+                               const std::string &xrstring,
                                const double to_xr,
-                               const std::string ylstring,
+                               const std::string &ylstring,
                                const double to_yl,
-                               const std::string yrstring,
+                               const std::string &yrstring,
                                const double to_yr,
-                               const std::string zlstring,
+                               const std::string &zlstring,
                                const double to_zl,
-                               const std::string zrstring,
+                               const std::string &zrstring,
                                const double to_zr) {
                  return std::make_shared<VPM::BCParams>(xlstring,
                                                         to_xl,
@@ -89,16 +92,16 @@ PYBIND11_MODULE(pyVPM, m)
              pybind11::arg("to_zr") = 0.0);
 
     pybind11::class_<VPM::Parameters>(m, "Parameters")
-        .def(pybind11::init([](const VPM::Point2d domain_ll,
-                               const VPM::Point2d domain_ur,
+        .def(pybind11::init([](const VPM::Point2d &domain_ll,
+                               const VPM::Point2d &domain_ur,
                                const unsigned int num_px,
                                const unsigned int num_py,
                                const double nu,
                                const double population_threshold,
-                               const std::shared_ptr<VPM::RemeshParams> remesh,
-                               const std::shared_ptr<VPM::BCParams> bc,
+                               const std::shared_ptr<VPM::RemeshParams> &remesh,
+                               const std::shared_ptr<VPM::BCParams> &bc,
                                const unsigned int order_ODEsolver,
-                               const VPM::Point2d Uinfty) {
+                               const VPM::Point2d &Uinfty) {
             return VPM::Parameters(domain_ll,
                                    domain_ur,
                                    num_px,
@@ -132,4 +135,37 @@ PYBIND11_MODULE(pyVPM, m)
           pybind11::arg("core_radius"),
           pybind11::arg("positions"),
           pybind11::arg("omega"));
+
+    pybind11::class_<VPM::VPM2d>(m, "VPM2d")
+        .def(pybind11::init([](const std::vector<std::string> &args) {
+            // convert to char-vector
+            std::vector<char *> temporary;
+            for (const auto &arg : args) {
+                char *data = const_cast<char *>(arg.c_str());
+                temporary.push_back(data);
+            }
+            return VPM::VPM2d(temporary.size(), temporary.data());
+        }))
+        .def("run",
+             &VPM::VPM2d::run,
+             pybind11::arg("pf"),
+             pybind11::arg("final_time"),
+             pybind11::arg("outputFile"),
+             pybind11::arg("fn_count"),
+             pybind11::arg("save_init"),
+             pybind11::arg("onestep"));
+
+    pybind11::class_<VPM::Split_Advection>(m, "Split_Advection")
+        .def("calculateVelocity", &VPM::Split_Advection::calculateVelocity, pybind11::arg("pf"));
+
+    pybind11::class_<VPM::Structure_Ellipse,
+                     std::shared_ptr<VPM::Structure_Ellipse>>(m, "Structure_Ellipse")
+        .def(pybind11::init([](VPM::Point2d origo, double semi_major_axis, double semi_minor_axis) {
+                 return std::make_shared<VPM::Structure_Ellipse>(origo,
+                                                                 semi_major_axis,
+                                                                 semi_minor_axis);
+             }),
+             pybind11::arg("origo"),
+             pybind11::arg("semi_major_axis"),
+             pybind11::arg("semi_minor_axis"));
 }
