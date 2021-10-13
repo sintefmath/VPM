@@ -215,19 +215,18 @@ int main(int argc, char** argv)
             bc_to_yr
             );
 
-    std::shared_ptr<VPM::Parameters> params = std::make_shared<VPM::Parameters>(
-            domain_ll,
-            domain_ur,
-            m_numberofParticlesx,
-            m_numberofParticlesy,
-            nu,
-            0,
-            population_threshold,
-            remeshParams,
-            bcParams,
-            order,
-            Uinfty
-            );
+    std::shared_ptr<VPM::Parameters> params
+        = std::make_shared<VPM::Parameters>(domain_ll,
+                                            domain_ur,
+                                            m_numberofParticlesx,
+                                            m_numberofParticlesy,
+                                            nu,
+                                            //0, // FIXME: This seems not to be used?
+                                            population_threshold,
+                                            remeshParams,
+                                            bcParams,
+                                            order,
+                                            Uinfty);
 
     std::vector<VPM::Point2d> positions;
     std::vector<double> omega;
@@ -253,11 +252,14 @@ int main(int argc, char** argv)
         save_init = false;
     }
 
-
-
-    vpm->run(pf, omega, time, dt, params,
-            outputFile, fn_count, save_init
-            );
+    vpm->run(pf,
+             //omega, // FIXME: This seems unused
+             time,
+             //dt, // FIXME: This seems unused
+             //params, // FIXME: This seems unused
+             outputFile,
+             fn_count,
+             save_init);
 
     return 0;
 
