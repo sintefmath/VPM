@@ -29,7 +29,7 @@ blue_red1 = LinearSegmentedColormap('BlueRed1', cdict1)
 
 
 def execute(command):
-    return subprocess.run([command, '-l'], stdout=subprocess.PIPE, shell=True).stdout.decode('utf-8')
+    return subprocess.run([command, '-l'], stdout=subprocess.PIPE, shell=True, check=True).stdout.decode('utf-8')
 
 
 def readFromFile(name,newshape=None, typ = np.float32, numberOfItems = -1, seek_num = -1):

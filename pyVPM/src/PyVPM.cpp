@@ -11,15 +11,24 @@
 #include "Split_Advection.hpp"
 #include "Structure_Ellipse.hpp"
 #include "VPM2d.hpp"
+#include "VPM2d.hpp"
+#include "Point2d.hpp"
+#include "InitialConditions.hpp"
+#include "Parameters.hpp"
+#include "Structure_Ellipse.hpp"
+#include <string>
+#define OMPI_SKIP_MPICXX 1
+#include <mpi.h>
+#include <petsc.h>
 
 std::string to_string(const VPM::Point2d &x)
 {
-    return "Point2D(" + std::to_string(x.x) + ", " + std::to_string(x.y) + ")";
+    return "Point2d(" + std::to_string(x.x) + ", " + std::to_string(x.y) + ")";
 }
 
 std::string to_string(const VPM::IPoint2d &x)
 {
-    return "IPoint2D(" + std::to_string(x.x) + ", " + std::to_string(x.y) + ")";
+    return "IPoint2d(" + std::to_string(x.x) + ", " + std::to_string(x.y) + ")";
 }
 
 PYBIND11_MODULE(pyVPM, m)
@@ -30,7 +39,7 @@ PYBIND11_MODULE(pyVPM, m)
         .def(pybind11::init<double, double>())
         .def_readwrite("x", &VPM::Point2d::x)
         .def_readwrite("y", &VPM::Point2d::y)
-        .def("__repr__", [](const VPM::Point2d &x) { to_string(x); })
+        .def("__repr__", [](const VPM::Point2d &x) { return to_string(x); })
         .def("tolist", [](const VPM::Point2d &x) {
             return std::vector<double>{{x.x, x.y}};
         });
@@ -39,7 +48,7 @@ PYBIND11_MODULE(pyVPM, m)
         .def(pybind11::init<int, int>())
         .def_readwrite("x", &VPM::IPoint2d::x)
         .def_readwrite("y", &VPM::IPoint2d::y)
-        .def("__repr__", [](const VPM::IPoint2d &x) { to_string(x); })
+        .def("__repr__", [](const VPM::IPoint2d &x) { return to_string(x); })
         .def("tolist", [](const VPM::IPoint2d &x) {
             return std::vector<int>{{x.x, x.y}};
         });
@@ -153,7 +162,10 @@ PYBIND11_MODULE(pyVPM, m)
              pybind11::arg("outputFile"),
              pybind11::arg("fn_count"),
              pybind11::arg("save_init"),
-             pybind11::arg("onestep"));
+             pybind11::arg("onestep"))
+        .def("setStructure",
+        &VPM::VPM2d::setStructure,
+        pybind11::arg("setStructure"));
 
     pybind11::class_<VPM::Split_Advection>(m, "Split_Advection")
         .def("calculateVelocity", &VPM::Split_Advection::calculateVelocity, pybind11::arg("pf"));
@@ -168,4 +180,17 @@ PYBIND11_MODULE(pyVPM, m)
              pybind11::arg("origo"),
              pybind11::arg("semi_major_axis"),
              pybind11::arg("semi_minor_axis"));
+
+    m.def("initialize_module", [](const std::vector<std::string>& args){
+        // convert to char-vector
+        std::vector<char *> temporary;
+        for (const auto &arg : args) {
+            char *data = const_cast<char *>(arg.c_str());
+            temporary.push_back(data);
+        }
+        int new_size = temporary.size();
+        char** temporary_data = temporary.data();
+        MPI_Init(&new_size, &temporary_data);
+    }
+    );
 }

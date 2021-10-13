@@ -14,6 +14,7 @@
         auto error = PetscError(PETSC_COMM_SELF,__LINE__,PETSC_FUNCTION_NAME,__FILE__,ierr__,PETSC_ERROR_REPEAT," "); \
         std::stringstream ss; \
         ss << "Petsc error at " << __FILE__ << ":" << __LINE__ << std::endl; \
+        std::cerr << ss.str() << std::endl; \
         throw std::runtime_error(ss.str()); \
     } \
 } while (0)
@@ -112,9 +113,12 @@ namespace ModulesHotel
 
     PoissonSolver2D::~PoissonSolver2D()
     {
-        MY_CHKERRQ(DMDestroy(&m_da));
-        MY_CHKERRQ(KSPDestroy(&m_ksp));
-        PetscFinalize();
+        if (m_initialized) {
+            // we do not want to run this if we never initialized
+            MY_CHKERRQ(DMDestroy(&m_da));
+            MY_CHKERRQ(KSPDestroy(&m_ksp));
+            PetscFinalize();
+        }
     };
 
     std::vector<double> PoissonSolver2D::solve(
