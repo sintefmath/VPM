@@ -98,13 +98,17 @@ void VPM2d::run_with_writer(
 
     // |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
     // //
+    #ifdef VPM_VERBOSE
     std::cerr << "------------- Step " << m_filename_count
               << ", time t = " << pf.time << " -----------\n";
     // 1) Calculate step size from stability constraint
     std::cerr << "  ---> calculate Linfty norm of the velocity field.\n";
+    #endif
     m_advection->getLinftyGradVelocity(pf);
+    #ifdef VPM_VERBOSE
     std::cerr << "    ---> max Linfty of velocity = "
               << pf.Linfty_gradVelocity << std::endl;
+    #endif
     if (stepcount == 0) {
       writer(stepcount, pf);
     }

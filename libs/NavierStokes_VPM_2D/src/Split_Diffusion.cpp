@@ -40,7 +40,9 @@ namespace VPM
             return;
         }
 
+        #ifdef VPM_VERBOSE
         std::cerr<<"  ---> Split_Diffusion:: Euler_step\n";
+        #endif
 
         m_diffeqsolver2d->solve(pf.omega,pf.params.m_num_px,pf.params.m_num_py, pf.params.m_dx, pf.params.m_dy, pf.params.m_nu, dt);
 

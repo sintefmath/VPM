@@ -1,5 +1,7 @@
 import numpy as np
+import time
 import pyVPM
+import tqdm
 # from mpi4py import MPI
 
 #import matplotlib as mpl
@@ -165,34 +167,42 @@ if __name__== "__main__":
 
     pyVPM.readParticlesFromFile(filename + "_t" + str(itstart), pf, random_velocity_dist)
    
-    for i in range(itstart,iterations):
+    time_spent_in_solving = 0
+    start_loop = time.time()
+    for i in tqdm.tqdm(range(itstart,iterations)):
+        # print(f"{i=} ({(i-itstart)/(iterations-itstart)*100} %)")
         t = pf.time
         radiusx = radius + 0.1*np.sin(t)
         radiusy = radius - 0.1*np.sin(t)
             
         structure = pyVPM.Structure_Ellipse(center, radiusx, radiusy)
         vpm_instance.setStructure(structure)
+        start_time = time.time()
         vpm_instance.run_without_writer(pf, final_time, True)
-        
+        end_time = time.time()
+        time_spent_in_solving += end_time - start_time
         
 
-        domain, x, y, Ux, Uy, omega, nu, time, nx, ny = getFields(pf)
+        domain, x, y, Ux, Uy, omega, nu, t, nx, ny = getFields(pf)
 
-        plt.figure(1)
-        plt.clf()
-        ax1 = plt.gca()
-        ma = np.max(omega)
-        mi = np.min(omega)
-        m = max(ma,-mi)
-        plt.title("time = "+"{:.4f}".format(time))
-        print(domain)
-        im = ax1.imshow(omega, extent=domain, origin="lower", cmap='seismic', vmin=-m, vmax=m, interpolation='bicubic')
-        divider = make_axes_locatable(ax1)
-        cax = divider.append_axes("bottom", size="5%", pad=0.25)
-        plt.colorbar(im, cax=cax, orientation="horizontal")
-        plt.savefig(filename+"_omega"+str(i).zfill(5)+".png")
+        # plt.figure(1)
+        # plt.clf()
+        # ax1 = plt.gca()
+        # ma = np.max(omega)
+        # mi = np.min(omega)
+        # m = max(ma,-mi)
+        # plt.title("time = "+"{:.4f}".format(time))
+        # im = ax1.imshow(omega, extent=domain, origin="lower", cmap='seismic', vmin=-m, vmax=m, interpolation='bicubic')
+        # divider = make_axes_locatable(ax1)
+        # cax = divider.append_axes("bottom", size="5%", pad=0.25)
+        # plt.colorbar(im, cax=cax, orientation="horizontal")
+        # plt.savefig(filename+"_omega"+str(i).zfill(5)+".png")
 
         
-        if time>= final_time:
+        if t>= final_time:
             iterations=i
             break
+    end_loop = time.time()
+
+    print(f"Time spent in loop: {end_loop - start_loop} s")
+    print(f"Time spent in solving: {time_spent_in_solving} s")

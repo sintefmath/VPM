@@ -233,7 +233,9 @@ namespace VPM
                 std::cerr<<"    ---> remesh method not found!!!\n";
                 exit(0);
         }
+        #ifdef VPM_VERBOSE
         std::cerr<<"    ---> redistribution method: "<<method_str <<std::endl;
+        #endif
         switch (method)
         {
             case(VPM::Gamma3): case(VPM::M4d): case(VPM::M5d): case(VPM::M6d):

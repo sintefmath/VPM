@@ -49,8 +49,8 @@ private:
   ParticleField m_pf;
 
   std::string m_outputFile;
-  int m_filename_count;
-  bool m_save_init;
+  int m_filename_count = 0;
+  bool m_save_init = false;
 };
 
 } // namespace VPM

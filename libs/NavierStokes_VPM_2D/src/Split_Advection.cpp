@@ -49,9 +49,9 @@ namespace VPM
             exit(0);
             return;
         }
-
-        std::cerr<<"  ---> Split_Advection: Euler_step\n";
-
+        #ifdef VPM_VERBOSE
+            std::cerr<<"  ---> Split_Advection: Euler_step\n";
+        #endif
         //p^{n+1} = p^n + dt*velocity(p^n);
         calculateVelocity(pf);
 
@@ -65,7 +65,9 @@ namespace VPM
 
         if (pf.params.m_remesh->m_isOn)
         {
+            #ifdef VPM_VERBOSE
             std::cerr<<"    --->Redistribute omega onto grid\n";
+            #endif
             m_redistribute->redistribute(pf);
         }
 
@@ -84,9 +86,11 @@ namespace VPM
             return;
         }
 
+        #ifdef VPM_VERBOSE
         std::cerr<<"  ---> Split_Advection:: RK2_step\n";
 
         std::cerr<<"                          substep 1\n";
+        #endif
         //    p^* = p^n + dt/2*velocity(p^n)
         //p^{n+1} = p^n +   dt*velocity(p^*);
         calculateVelocity(pf);
@@ -112,7 +116,9 @@ namespace VPM
 
         if (pf.params.m_remesh->m_isOn)
         {
+            #ifdef VPM_VERBOSE
             std::cerr<<"    ---> Redistribute omega onto grid\n";
+            #endif
             m_redistribute->redistribute(pf);
         }
 
@@ -124,7 +130,9 @@ namespace VPM
     {
         if (pf.velocity_correspondsTo_omega)
         {
+            #ifdef VPM_VERBOSE
             std::cerr<<"    ---> Velocity already calculated.\n";
+            #endif
             return;
         }
 
@@ -132,13 +140,19 @@ namespace VPM
         std::vector<double> potential;
         if (pf.cartesianGrid)
         {
+            #ifdef VPM_VERBOSE
             std::cerr<<"    ---> Calculating velocity...";
+            #endif
             potential = m_poissonsolver2d->solve(pf.omega,pf.params.m_num_px,pf.params.m_num_py, pf.params.m_dx, pf.params.m_dy);
+            #ifdef VPM_VERBOSE
             std::cerr<<"done.\n";
+            #endif
         }
         else
         {
+            #ifdef VPM_VERBOSE
             std::cerr<<"    ---> Redistribute omega onto regular grid\n";
+            #endif
             std::vector<double> redistributed_omega;
             redistributed_omega.resize(pf.omega.size(), 0.);
             for (int i=0; i<pf.omega.size(); i++)
@@ -152,9 +166,13 @@ namespace VPM
                 redistributed_omega,
                 RED2D_G2P_BUILD
                 );
+            #ifdef VPM_VERBOSE
             std::cerr<<"    ---> Calculating velocity...";
+            #endif
             potential = m_poissonsolver2d->solve(redistributed_omega,pf.params.m_num_px,pf.params.m_num_py, pf.params.m_dx, pf.params.m_dy);
+            #ifdef VPM_VERBOSE
             std::cerr<<"done.\n";
+            #endif
         }
 
 
@@ -250,7 +268,9 @@ namespace VPM
         {
             if (m_structure_set)
             {
+                #ifdef VPM_VERBOSE
                 std::cerr<<"    ---> Redistribute vorticity onto IRregular grid\n";
+                #endif
                 m_redistribute->redistribute(
                     pf.regular_positions,
                     pf.positions,
@@ -259,7 +279,9 @@ namespace VPM
                     RED2D_G2P_USE
                             );
             }
+            #ifdef VPM_VERBOSE
             std::cerr<<"    ---> Redistribute velocity onto IRregular grid\n";
+            #endif
             m_redistribute->redistribute(
                 pf.regular_positions,
                 pf.positions,
