@@ -75,13 +75,14 @@ def getFields(pf):
   
     reshape = (ny, nx)
     prec=np.float64
-     
-    x = np.reshape(np.array([point.x for point in pf.positions]), reshape)
-    y = np.reshape(np.array([point.y for point in pf.positions]), reshape)
+    x, y = pyVPM.convert_to_numpy(pf.positions)
+    x = np.reshape(x, reshape)
+    y = np.reshape(x, reshape)
     
-    Ux = np.reshape(np.array([vel.x for vel in pf.velocity]), reshape)
-    Uy = np.reshape(np.array([vel.y for vel in pf.velocity]), reshape)
-    omega = np.reshape(np.array(pf.omega), reshape)
+    Ux, Uy = pyVPM.convert_to_numpy(pf.velocity)
+    Ux = np.reshape(Ux, reshape)
+    Uy = np.reshape(Uy, reshape)
+    omega = np.reshape(pf.get_omega_as_numpy(), reshape)
     time = pf.time
     return domain, x, y, Ux, Uy, omega, nu, time, nx, ny
 

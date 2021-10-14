@@ -110,6 +110,8 @@ namespace ModulesHotel
 
     DiffusionEquationSolver2D::~DiffusionEquationSolver2D()
     {
+        if (!m_initialized)
+            return;
         MY_CHKERRQ(DMDestroy(&m_da));
         MY_CHKERRQ(KSPDestroy(&m_ksp));
         PetscFinalize();

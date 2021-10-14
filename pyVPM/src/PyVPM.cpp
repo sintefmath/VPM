@@ -107,14 +107,33 @@ PYBIND11_MODULE(pyVPM, m) {
                      &VPM::ParticleField::regular_positions)
       .def_readwrite("params", &VPM::ParticleField::params)
       .def_readwrite("omega", &VPM::ParticleField::omega)
-      .def_readwrite("positions", &VPM::ParticleField::positions)
       .def_readwrite("velocity", &VPM::ParticleField::velocity)
       .def_readwrite("cartesianGrid", &VPM::ParticleField::cartesianGrid)
       .def_readwrite("velocity_correspondsTo_omega",
                      &VPM::ParticleField::velocity_correspondsTo_omega)
       .def_readwrite("Linfty_gradVelocity",
                      &VPM::ParticleField::Linfty_gradVelocity)
-      .def_readwrite("time", &VPM::ParticleField::time);
+      .def_readwrite("time", &VPM::ParticleField::time)
+      .def("get_omega_as_numpy", [](const VPM::ParticleField& pf){
+        auto result = pybind11::array_t<double>(pf.omega.size());
+        double *ptr = static_cast<double *>(result.request().ptr);
+        for (int i = 0; i < pf.omega.size(); ++i) {
+          ptr[i] = pf.omega[i];
+        }
+        return result;
+      });
+  
+  m.def("convert_to_numpy", [](const std::vector<VPM::Point2d>& points) {
+     auto resultx = pybind11::array_t<double>(points.size());
+     auto resulty = pybind11::array_t<double>(points.size());
+    double *ptrx = static_cast<double *>(resultx.request().ptr);
+    double *ptry = static_cast<double *>(resulty.request().ptr);
+     for (int i = 0; i < points.size(); ++i) {
+       ptrx[i] = points[i].x;
+       ptry[i] = points[i].y;
+     }
+     return std::make_tuple(resultx, resulty);
+  }, pybind11::arg("points"));
 
   m.def("init_particles", &VPM::init, pybind11::arg("params"),
         pybind11::arg("example_num"), pybind11::arg("dist"),
@@ -147,6 +166,7 @@ PYBIND11_MODULE(pyVPM, m) {
 
   pybind11::class_<VPM::Structure, std::shared_ptr<VPM::Structure>>(
       m, "Structure");
+
   pybind11::class_<VPM::Structure_Ellipse,
                    std::shared_ptr<VPM::Structure_Ellipse>, VPM::Structure>(
       m, "Structure_Ellipse")
