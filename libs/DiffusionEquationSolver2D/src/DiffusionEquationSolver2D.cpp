@@ -112,9 +112,9 @@ namespace ModulesHotel
     {
         if (!m_initialized)
             return;
-        MY_CHKERRQ(DMDestroy(&m_da));
-        MY_CHKERRQ(KSPDestroy(&m_ksp));
-        PetscFinalize();
+        // MY_CHKERRQ(DMDestroy(&m_da));
+        // MY_CHKERRQ(KSPDestroy(&m_ksp));
+        // PetscFinalize();
     };
 
     void DiffusionEquationSolver2D::solve(

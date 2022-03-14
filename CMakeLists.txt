@@ -1,5 +1,6 @@
 project(VPM)
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.7)
+# set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=*")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(BUILD_SHARED_LIBS ON)
 add_subdirectory(libs)

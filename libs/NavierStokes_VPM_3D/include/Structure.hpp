@@ -7,7 +7,7 @@ namespace VPM
     {
     public:
        Structure() {};
-        ~Structure() {};
+        virtual ~Structure() {};
         virtual bool isInside(const Point3d pos, const double pad) = 0;
 
     private:

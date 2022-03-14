@@ -115,9 +115,9 @@ namespace ModulesHotel
     {
         if (m_initialized) {
             // we do not want to run this if we never initialized
-            MY_CHKERRQ(DMDestroy(&m_da));
-            MY_CHKERRQ(KSPDestroy(&m_ksp));
-            PetscFinalize();
+            // MY_CHKERRQ(DMDestroy(&m_da));
+            // MY_CHKERRQ(KSPDestroy(&m_ksp));
+            // PetscFinalize();
         }
     };
 

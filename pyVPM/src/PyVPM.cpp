@@ -11,6 +11,7 @@
 #include "Split_Advection.hpp"
 #include "Structure.hpp"
 #include "Structure_Ellipse.hpp"
+#include "UnionStructure.hpp"
 #include "VPM2d.hpp"
 #include <string>
 #define OMPI_SKIP_MPICXX 1
@@ -186,6 +187,16 @@ PYBIND11_MODULE(pyVPM, m) {
            }),
            pybind11::arg("origo"), pybind11::arg("semi_major_axis"),
            pybind11::arg("semi_minor_axis"));
+
+
+  pybind11::class_<VPM::UnionStructure,
+                   std::shared_ptr<VPM::UnionStructure>, VPM::Structure>(
+      m, "UnionStructure")
+      .def(pybind11::init([](std::vector<std::shared_ptr<VPM::Structure>> structures) {
+             return std::make_shared<VPM::UnionStructure>(
+                 structures);
+           }),
+           pybind11::arg("structures"));
 
   m.def("initialize_module", [](const std::vector<std::string> &args) {
     // convert to char-vector
