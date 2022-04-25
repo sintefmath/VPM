@@ -12,6 +12,7 @@
 #include "Structure.hpp"
 #include "Structure_Ellipse.hpp"
 #include "UnionStructure.hpp"
+#include "Structure_Transformed.hpp"
 #include "VPM2d.hpp"
 #include <string>
 #define OMPI_SKIP_MPICXX 1
@@ -26,6 +27,10 @@ std::string to_string(const VPM::IPoint2d &x) {
   return "IPoint2d(" + std::to_string(x.x) + ", " + std::to_string(x.y) + ")";
 }
 
+std::string to_string(const VPM::Matrix2x2& m) {
+  return "Matrix2x2(" + std::to_string(m.a) + ", " + std::to_string(m.b) + ", " + std::to_string(m.c) + ", " + std::to_string(m.d) + ")";
+}
+
 PYBIND11_MODULE(pyVPM, m) {
   m.doc() = "Python Bindinds for the VPM module.";
 
@@ -37,6 +42,17 @@ PYBIND11_MODULE(pyVPM, m) {
       .def("tolist", [](const VPM::Point2d &x) {
         return std::vector<double>{{x.x, x.y}};
       });
+
+
+  pybind11::class_<VPM::Matrix2x2>(m, "Matrix2x2")
+      .def(pybind11::init<double, double, double, double>())
+      .def_readwrite("a", &VPM::Matrix2x2::a)
+      .def_readwrite("b", &VPM::Matrix2x2::b)
+      .def_readwrite("c", &VPM::Matrix2x2::c)
+      .def_readwrite("d", &VPM::Matrix2x2::d)
+      .def_static("makeRotation", &VPM::Matrix2x2::makeRotation)
+      .def("__repr__", [](const VPM::Matrix2x2 &x) { return to_string(x); })
+      ;
 
   pybind11::class_<VPM::IPoint2d>(m, "IPoint2d")
       .def(pybind11::init<int, int>())
@@ -197,6 +213,16 @@ PYBIND11_MODULE(pyVPM, m) {
                  structures);
            }),
            pybind11::arg("structures"));
+
+
+    pybind11::class_<VPM::Structure_Transformed,
+                   std::shared_ptr<VPM::Structure_Transformed>, VPM::Structure>(
+      m, "Structure_Transformed")
+      .def(pybind11::init([](const VPM::Matrix2x2& linearTransformation, std::shared_ptr<VPM::Structure> structure) {
+             return std::make_shared<VPM::Structure_Transformed>(
+                 linearTransformation, structure);
+           }),
+           pybind11::arg("linearTransformation"), pybind11::arg("structure"));
 
   m.def("initialize_module", [](const std::vector<std::string> &args) {
     // convert to char-vector
