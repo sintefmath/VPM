@@ -16,10 +16,6 @@ inline PosType operator/(const double a, const PosType& v )
     return PosType(
         a/v.x,
         a/v.y
-#ifdef _3D_VPM_
-        ,
-        a/v.z
-#endif
         );
 }
 inline PosType operator/(const PosType& v,const double a )
@@ -27,33 +23,15 @@ inline PosType operator/(const PosType& v,const double a )
     return PosType(
         v.x/a,
         v.y/a
-#ifdef _3D_VPM_
-        ,
-        v.z/a
-#endif
         );
 }
 
-#ifdef _3D_VPM_
-inline PosType operator+(const PosType& lhs, const PosType& rhs )
-{
-    return PosType(
-        lhs.x + rhs.x,
-        lhs.y + rhs.y,
-        lhs.z + rhs.z
-        );
-}
-#endif
 
 inline PosType operator+(const double a, const PosType& v )
 {
     return PosType(
         a + v.x,
         a + v.y
-#ifdef _3D_VPM_
-        ,
-        a + v.z
-#endif
         );
 }
 inline PosType operator+(const PosType& v, const double a )
@@ -65,10 +43,6 @@ inline PosType operator-(const double a, const PosType& v )
     return PosType(
         a - v.x,
         a - v.y
-#ifdef _3D_VPM_
-        ,
-        a - v.z
-#endif
         );
 }
 inline PosType operator-(const PosType& v, const double a )
@@ -76,10 +50,6 @@ inline PosType operator-(const PosType& v, const double a )
     return PosType(
         v.x - a,
         v.y - a
-#ifdef _3D_VPM_
-        ,
-        v.z - a
-#endif
         );
 }
 inline PosType operator-(const PosType& lhs, const PosType& rhs )
@@ -87,18 +57,11 @@ inline PosType operator-(const PosType& lhs, const PosType& rhs )
     return PosType(
         lhs.x - rhs.x,
         lhs.y - rhs.y
-#ifdef _3D_VPM_
-        ,
-        lhs.z - rhs.z
-#endif
         );
 }
 inline PosType operator-(const PosType& v)
 {
     return PosType(-v.x, -v.y
-#ifdef _3D_VPM_
-                   , -v.z
-#endif
                    );
 }
 inline PosType operator*(const double a, const PosType& rhs )
@@ -106,10 +69,6 @@ inline PosType operator*(const double a, const PosType& rhs )
     return PosType(
         a*rhs.x,
         a*rhs.y
-#ifdef _3D_VPM_
-        ,
-        a*rhs.z
-#endif
         );
 }
 inline PosType operator*(const PosType& v,const double a )
