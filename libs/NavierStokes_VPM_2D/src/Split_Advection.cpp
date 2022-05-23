@@ -104,19 +104,16 @@ void Split_Advection::calculateVelocity(ParticleField &pf) {
   }
 
 #ifdef _USE_BBFMM_POSTYPE_
-  std::cerr << "Using FMM" << std::endl;
   // ugly hack...
   global_eps = pf.params.m_eps;
   global_sigma = pf.params.m_sigma;
   global_delta = 1.7 * pf.params.m_dx;
 
   /****************      Building fmm tree     **************/
-  std::cerr << "Number of Chebyshev Nodes: " << m_nChebNodes;
-
   m_FMM_kernel_K2_order6_x = new Kernel_K2_order6_x();
   m_FMM_kernel_K2_order6_y = new Kernel_K2_order6_y();
   const unsigned m = 1; // Number of sets of charges;
-  std::cout << __LINE__ << std::endl;
+
   // This is needed since BBFMM2D expects a vector of ::Points, while
   // we have a vector of VPM::Point2d. Can probably be optimized since
   // they are the exact same in memory...
@@ -124,22 +121,22 @@ void Split_Advection::calculateVelocity(ParticleField &pf) {
   for (unsigned int i = 0; i < pf.positions.size(); ++i) {
     positions_to_BBFMM2D[i] = ::Point(pf.positions[i].x, pf.positions[i].y);
   }
-  std::cout << __LINE__ << std::endl;
+
   H2_2D_Tree Atree(m_nChebNodes, pf.omega.data(), positions_to_BBFMM2D,
                    pf.params.m_N, m); // Build the fmm tree;
-  std::cout << __LINE__ << std::endl;
+
   /****************    Calculating potential   *************/
   std::vector<double> Ux(pf.params.m_N * m);
   m_FMM_kernel_K2_order6_x->calculate_Potential(Atree, Ux.data());
-  std::cout << __LINE__ << std::endl;
+
   std::vector<double> Uy(pf.params.m_N * m);
   m_FMM_kernel_K2_order6_y->calculate_Potential(Atree, Uy.data());
-  std::cout << __LINE__ << std::endl;
+
   for (unsigned int i = 0; i < Uy.size(); i++) {
     pf.velocity[i] = pf.params.m_Uinfty +
                      Point2d(pf.params.m_vol * Ux[i], pf.params.m_vol * Uy[i]);
   }
-  std::cout << __LINE__ << std::endl;
+
 #else
   std::cerr << "Using old fashion" << std::endl;
 
