@@ -1,4 +1,5 @@
 #include "Split_Advection.hpp"
+#include "DisableOutput.hpp"
 #include "Kernels.hpp"
 #include "PoissonSolver2D.hpp"
 #include "Structure.hpp"
@@ -121,22 +122,23 @@ void Split_Advection::calculateVelocity(ParticleField &pf) {
   for (unsigned int i = 0; i < pf.positions.size(); ++i) {
     positions_to_BBFMM2D[i] = ::Point(pf.positions[i].x, pf.positions[i].y);
   }
+  {
+    DisableOutput disableStdout(std::cout);
+    H2_2D_Tree Atree(m_nChebNodes, pf.omega.data(), positions_to_BBFMM2D,
+                     pf.params.m_N, m); // Build the fmm tree;
 
-  H2_2D_Tree Atree(m_nChebNodes, pf.omega.data(), positions_to_BBFMM2D,
-                   pf.params.m_N, m); // Build the fmm tree;
+    /****************    Calculating potential   *************/
+    std::vector<double> Ux(pf.params.m_N * m);
+    m_FMM_kernel_K2_order6_x->calculate_Potential(Atree, Ux.data());
 
-  /****************    Calculating potential   *************/
-  std::vector<double> Ux(pf.params.m_N * m);
-  m_FMM_kernel_K2_order6_x->calculate_Potential(Atree, Ux.data());
+    std::vector<double> Uy(pf.params.m_N * m);
+    m_FMM_kernel_K2_order6_y->calculate_Potential(Atree, Uy.data());
 
-  std::vector<double> Uy(pf.params.m_N * m);
-  m_FMM_kernel_K2_order6_y->calculate_Potential(Atree, Uy.data());
-
-  for (unsigned int i = 0; i < Uy.size(); i++) {
-    pf.velocity[i] = pf.params.m_Uinfty +
-                     Point2d(pf.params.m_vol * Ux[i], pf.params.m_vol * Uy[i]);
+    for (unsigned int i = 0; i < Uy.size(); i++) {
+      pf.velocity[i] = pf.params.m_Uinfty + Point2d(pf.params.m_vol * Ux[i],
+                                                    pf.params.m_vol * Uy[i]);
+    }
   }
-
 #else
   std::cerr << "Using old fashion" << std::endl;
 
