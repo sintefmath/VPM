@@ -1,3 +1,4 @@
+add_subdirectory(FMM2D)
 add_subdirectory(GeneralUtils)
 add_subdirectory(PoissonSolver2D)
 add_subdirectory(PoissonSolver3D)
