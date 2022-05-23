@@ -1,0 +1,3 @@
+[submodule "libs/FMM2D/BBFMM2D"]
+	path = libs/FMM2D/BBFMM2D
+	url = git@github.com:sivaramambikasaran/BBFMM2D.git
