@@ -11,7 +11,7 @@ struct Matrix2x2 {
     Matrix2x2(double a, double b, double c, double d) 
         : a(a), b(b), c(c), d(d) {}
     
-    Point2d operator*(const Point2d& point) {
+    Point2d operator*(const Point2d& point) const {
         auto x = point.x;
         auto y = point.y;
         return Point2d( a * x + b * y, c * x + d * y );

@@ -38,6 +38,9 @@ PYBIND11_MODULE(pyVPM, m) {
       .def(pybind11::init<double, double>())
       .def_readwrite("x", &VPM::Point2d::x)
       .def_readwrite("y", &VPM::Point2d::y)
+      .def("__add__", [](const VPM::Point2d& x, const VPM::Point2d& y) {
+        return x + y;
+      })
       .def("__repr__", [](const VPM::Point2d &x) { return to_string(x); })
       .def("tolist", [](const VPM::Point2d &x) {
         return std::vector<double>{{x.x, x.y}};
@@ -51,6 +54,9 @@ PYBIND11_MODULE(pyVPM, m) {
       .def_readwrite("c", &VPM::Matrix2x2::c)
       .def_readwrite("d", &VPM::Matrix2x2::d)
       .def_static("makeRotation", &VPM::Matrix2x2::makeRotation)
+      .def("__mul__", [](const VPM::Matrix2x2 &m, const VPM::Point2d& point) {
+        return m*point;
+      })
       .def("__repr__", [](const VPM::Matrix2x2 &x) { return to_string(x); })
       ;
 
@@ -218,11 +224,11 @@ PYBIND11_MODULE(pyVPM, m) {
     pybind11::class_<VPM::Structure_Transformed,
                    std::shared_ptr<VPM::Structure_Transformed>, VPM::Structure>(
       m, "Structure_Transformed")
-      .def(pybind11::init([](const VPM::Matrix2x2& linearTransformation, std::shared_ptr<VPM::Structure> structure) {
+      .def(pybind11::init([](const VPM::Matrix2x2& linearTransformation, const VPM::Point2d& translation, std::shared_ptr<VPM::Structure> structure) {
              return std::make_shared<VPM::Structure_Transformed>(
-                 linearTransformation, structure);
+                 linearTransformation, translation, structure);
            }),
-           pybind11::arg("linearTransformation"), pybind11::arg("structure"));
+           pybind11::arg("linearTransformation"), pybind11::arg("translation"), pybind11::arg("structure"));
 
   m.def("initialize_module", [](const std::vector<std::string> &args) {
     // convert to char-vector
