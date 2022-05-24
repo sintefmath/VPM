@@ -7,8 +7,6 @@
 
 #ifdef _USE_BBFMM_POSTYPE_
 #include "BBFMM2D.hpp"
-class Kernel_K2_order6_x;
-class Kernel_K2_order6_y;
 #endif
 
 #include <vector>
@@ -63,8 +61,6 @@ namespace VPM
 
 #ifdef _USE_BBFMM_POSTYPE_
         const unsigned short m_nChebNodes = 8;// Number of Chebyshev nodes( >= 3)
-        Kernel_K2_order6_x * m_FMM_kernel_K2_order6_x;
-        Kernel_K2_order6_y * m_FMM_kernel_K2_order6_y;
 #endif
     };
 

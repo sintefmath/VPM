@@ -106,13 +106,14 @@ void Split_Advection::calculateVelocity(ParticleField &pf) {
 
 #ifdef _USE_BBFMM_POSTYPE_
   // ugly hack...
-  global_eps = pf.params.m_eps;
-  global_sigma = pf.params.m_sigma;
-  global_delta = 1.7 * pf.params.m_dx;
+  //  global_eps = pf.params.m_eps;
+  //  global_sigma = pf.params.m_sigma;
+  //  global_delta = 1.7 * pf.params.m_dx;
 
   /****************      Building fmm tree     **************/
-  m_FMM_kernel_K2_order6_x = new Kernel_K2_order6_x();
-  m_FMM_kernel_K2_order6_y = new Kernel_K2_order6_y();
+  Kernel_K2_order6_x FMM_kernel_K2_order6_x(pf.params.m_eps);
+  Kernel_K2_order6_y FMM_kernel_K2_order6_y(pf.params.m_eps);
+
   const unsigned m = 1; // Number of sets of charges;
 
   // This is needed since BBFMM2D expects a vector of ::Points, while
@@ -122,6 +123,15 @@ void Split_Advection::calculateVelocity(ParticleField &pf) {
   for (unsigned int i = 0; i < pf.positions.size(); ++i) {
     positions_to_BBFMM2D[i] = ::Point(pf.positions[i].x, pf.positions[i].y);
   }
+
+  // Setting potential inside structure to 0.0.
+  for (unsigned int i = 0; i < pf.positions.size(); ++i) {
+    if (m_structure) {
+      if (m_structure->isInside(pf.positions[i], 4 * pf.params.m_dx)) {
+        pf.omega[i] = 0.0;
+      }
+    }
+  }
   {
     DisableOutput disableStdout(std::cout);
     H2_2D_Tree Atree(m_nChebNodes, pf.omega.data(), positions_to_BBFMM2D,
@@ -129,10 +139,10 @@ void Split_Advection::calculateVelocity(ParticleField &pf) {
 
     /****************    Calculating potential   *************/
     std::vector<double> Ux(pf.params.m_N * m);
-    m_FMM_kernel_K2_order6_x->calculate_Potential(Atree, Ux.data());
+    FMM_kernel_K2_order6_x.calculate_Potential(Atree, Ux.data());
 
     std::vector<double> Uy(pf.params.m_N * m);
-    m_FMM_kernel_K2_order6_y->calculate_Potential(Atree, Uy.data());
+    FMM_kernel_K2_order6_y.calculate_Potential(Atree, Uy.data());
 
     for (unsigned int i = 0; i < Uy.size(); i++) {
       pf.velocity[i] = pf.params.m_Uinfty + Point2d(pf.params.m_vol * Ux[i],

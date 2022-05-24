@@ -2,10 +2,6 @@
 #include "Parameters.hpp"
 #include "Point2d.hpp"
 #define PSEorder 2
-// ugly hack...
-double global_eps;
-double global_delta;
-double global_sigma;
 #include "kernel_Base.hpp"
 #include "H2_2D_Node.hpp"
 typedef Point PosType;
@@ -132,6 +128,8 @@ inline double eta(const PosType & p, const double sigma)
 class Kernel_K2_order6_x: public kernel_Base
 {
 public:
+    Kernel_K2_order6_x(double global_eps) : global_eps(global_eps) {}
+
     virtual double kernel_Func(Point p0, Point p1) override
     {
         Point p = p0-p1;
@@ -142,10 +140,15 @@ public:
         }
         return -p.y/(2*M_PI*r2)*moll(r2,global_eps);
     }
+
+private:
+    double global_eps;
 };
 class Kernel_K2_order6_y: public kernel_Base
 {
 public:
+
+    Kernel_K2_order6_y(double global_eps) : global_eps(global_eps) {}
     virtual double kernel_Func(Point p0, Point p1) override
     {
         Point p = p0-p1;
@@ -156,12 +159,15 @@ public:
         }
         return +p.x/(2*M_PI*r2)*moll(r2,global_eps);;
     }
+
+private:
+    double global_eps;
 };
-class Kernel_diffusion_eta: public kernel_Base
-{
-public:
-    virtual double kernel_Func(Point p0, Point p1) override
-    {
-        return eta(p0-p1, global_sigma);
-    }
-};
+//class Kernel_diffusion_eta: public kernel_Base
+//{
+//public:
+//    virtual double kernel_Func(Point p0, Point p1) override
+//    {
+//        return eta(p0-p1, global_sigma);
+//    }
+//};
