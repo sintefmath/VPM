@@ -11,6 +11,7 @@
 #include "Split_Advection.hpp"
 #include "Structure.hpp"
 #include "Structure_Ellipse.hpp"
+#include "Structure_Rectangle.hpp"
 #include "UnionStructure.hpp"
 #include "Structure_Transformed.hpp"
 #include "VPM2d.hpp"
@@ -39,6 +40,9 @@ PYBIND11_MODULE(pyVPM, m) {
       .def_readwrite("x", &VPM::Point2d::x)
       .def_readwrite("y", &VPM::Point2d::y)
       .def("__add__", [](const VPM::Point2d& x, const VPM::Point2d& y) {
+        return x + y;
+      })
+      .def("__sub__", [](const VPM::Point2d& x, const VPM::Point2d& y) {
         return x + y;
       })
       .def("__repr__", [](const VPM::Point2d &x) { return to_string(x); })
@@ -209,6 +213,15 @@ PYBIND11_MODULE(pyVPM, m) {
            }),
            pybind11::arg("origo"), pybind11::arg("semi_major_axis"),
            pybind11::arg("semi_minor_axis"));
+
+  pybind11::class_<VPM::Structure_Rectangle,
+                   std::shared_ptr<VPM::Structure_Rectangle>, VPM::Structure>(
+      m, "Structure_Rectangle")
+      .def(pybind11::init([](VPM::Point2d lower_corner, VPM::Point2d upper_corner) {
+             return std::make_shared<VPM::Structure_Rectangle>(
+                 lower_corner, upper_corner);
+           }),
+           pybind11::arg("lower_corner"), pybind11::arg("upper_corner"));
 
 
   pybind11::class_<VPM::UnionStructure,
